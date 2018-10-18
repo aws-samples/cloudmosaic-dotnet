@@ -1,0 +1,18 @@
+// Gallery Setup
+
+
+Zip Comes in
+
+Upload individual files 
+
+Create thumbnails compute average colors
+
+
+
+// Generate Mosaic
+
+Create ColorMap
+
+Determine Best Fit Images
+
+Render Image

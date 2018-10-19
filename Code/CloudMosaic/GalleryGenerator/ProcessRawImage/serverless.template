@@ -1,0 +1,40 @@
+{
+  "AWSTemplateFormatVersion" : "2010-09-09",
+  "Transform" : "AWS::Serverless-2016-10-31",
+  "Description" : "Template that creates a S3 bucket and a Lambda function that will be invoked when new objects are upload to the bucket.",
+  "Parameters" : {
+  },
+
+  "Conditions" : {
+  },
+
+
+  "Resources" : {
+
+	"ProcessRawImageFunctionDLQ" : {
+	    "Type" : "AWS::SQS::Queue",
+	    "Properties" : {
+	    }
+	},
+
+    "ProcessRawImageFunction" : {
+      "Type" : "AWS::Serverless::Function",
+      "Properties": {
+        "Handler": "ProcessRawImage::ProcessRawImage.Function::FunctionHandler",
+        "Runtime": "dotnetcore2.1",
+        "CodeUri": "",
+        "Description": "Default function",
+        "MemorySize": 512,
+        "Timeout": 60,
+        "Role": null,
+        "Policies": [ "AWSLambdaFullAccess", "AmazonRekognitionReadOnlyAccess" ],
+        "Tracing" : "Active",
+        "DeadLetterQueue" : {"Type" : "SQS", "TargetArn": {"Fn::GetAtt" : [ "ProcessRawImageFunctionDLQ", "Arn"]}},
+        "Events": {
+        }
+      }
+    }
+  },
+  "Outputs" : {
+  }
+}

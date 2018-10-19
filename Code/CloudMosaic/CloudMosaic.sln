@@ -9,6 +9,21 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ProcessRawImage", "GalleryG
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ZipExpanderConsole", "GalleryGenerator\ZipExpanderConsole\ZipExpanderConsole.csproj", "{C9BADFD5-449B-4A22-BC43-55764D9FAC7E}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "MosaicStepFunctions", "MosaicStepFunctions", "{0C3BCF58-98AB-4521-BCB1-A19AB8321673}"
+	ProjectSection(SolutionItems) = preProject
+		MosaicStepFunctions\aws-lambda-tools-defaults.json = MosaicStepFunctions\aws-lambda-tools-defaults.json
+		MosaicStepFunctions\serverless.template = MosaicStepFunctions\serverless.template
+		MosaicStepFunctions\state-machine.json = MosaicStepFunctions\state-machine.json
+	EndProjectSection
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MosaicStepFunctions.Common", "MosaicStepFunctions\MosaicStepFunctions.Common\MosaicStepFunctions.Common.csproj", "{538D33E4-203F-4EA5-8026-C68FEA8EAE6C}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CreateColorMapFunction", "MosaicStepFunctions\CreateColorMapFunction\CreateColorMapFunction.csproj", "{92C4D2D8-267F-4B9E-9EB3-FB76C652D90E}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DetermineBestImagesFunction", "MosaicStepFunctions\DetermineBestImagesFunction\DetermineBestImagesFunction.csproj", "{84156FA9-F6AB-42CF-B1FD-1A1B2D1F27E3}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RenderMosaicFunction", "MosaicStepFunctions\RenderMosaicFunction\RenderMosaicFunction.csproj", "{4E1218C8-71A5-4E22-A486-3102A2E4392A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -23,6 +38,22 @@ Global
 		{C9BADFD5-449B-4A22-BC43-55764D9FAC7E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C9BADFD5-449B-4A22-BC43-55764D9FAC7E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C9BADFD5-449B-4A22-BC43-55764D9FAC7E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{538D33E4-203F-4EA5-8026-C68FEA8EAE6C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{538D33E4-203F-4EA5-8026-C68FEA8EAE6C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{538D33E4-203F-4EA5-8026-C68FEA8EAE6C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{538D33E4-203F-4EA5-8026-C68FEA8EAE6C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{92C4D2D8-267F-4B9E-9EB3-FB76C652D90E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{92C4D2D8-267F-4B9E-9EB3-FB76C652D90E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{92C4D2D8-267F-4B9E-9EB3-FB76C652D90E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{92C4D2D8-267F-4B9E-9EB3-FB76C652D90E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{84156FA9-F6AB-42CF-B1FD-1A1B2D1F27E3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{84156FA9-F6AB-42CF-B1FD-1A1B2D1F27E3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{84156FA9-F6AB-42CF-B1FD-1A1B2D1F27E3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{84156FA9-F6AB-42CF-B1FD-1A1B2D1F27E3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4E1218C8-71A5-4E22-A486-3102A2E4392A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4E1218C8-71A5-4E22-A486-3102A2E4392A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4E1218C8-71A5-4E22-A486-3102A2E4392A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4E1218C8-71A5-4E22-A486-3102A2E4392A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -30,6 +61,10 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{8D3AD06A-5565-40C2-A7CF-337F458EDE56} = {2A4B5949-96F8-4D40-B35E-143E2DDE9FF5}
 		{C9BADFD5-449B-4A22-BC43-55764D9FAC7E} = {2A4B5949-96F8-4D40-B35E-143E2DDE9FF5}
+		{538D33E4-203F-4EA5-8026-C68FEA8EAE6C} = {0C3BCF58-98AB-4521-BCB1-A19AB8321673}
+		{92C4D2D8-267F-4B9E-9EB3-FB76C652D90E} = {0C3BCF58-98AB-4521-BCB1-A19AB8321673}
+		{84156FA9-F6AB-42CF-B1FD-1A1B2D1F27E3} = {0C3BCF58-98AB-4521-BCB1-A19AB8321673}
+		{4E1218C8-71A5-4E22-A486-3102A2E4392A} = {0C3BCF58-98AB-4521-BCB1-A19AB8321673}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {99499913-283A-4DEA-BB5F-EADBFE2C8FCF}

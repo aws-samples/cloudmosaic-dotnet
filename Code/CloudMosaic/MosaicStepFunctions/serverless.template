@@ -1,0 +1,127 @@
+{
+  "AWSTemplateFormatVersion" : "2010-09-09",
+  "Transform" : "AWS::Serverless-2016-10-31",
+  "Description" : "An AWS Serverless Application.",
+
+  "Resources" : {
+
+
+    "CreateColorMapFunction" : {
+        "Type" : "AWS::Lambda::Function",
+        "Properties" : {
+            "Handler" : "CreateColorMapFunction::CreateColorMapFunction.Function::FunctionHandler",
+            "Role"    : {"Fn::GetAtt" : [ "LambdaRole", "Arn"]},
+            "Runtime" : "dotnetcore2.1",
+            "MemorySize" : 512,
+            "Timeout" : 60,
+            "Code" : {
+                "S3Bucket" : "",
+                "S3Key" : "./CreateColorMapFunction"
+            }
+        }
+    },
+
+    "DetermineBestImagesFunction" : {
+        "Type" : "AWS::Lambda::Function",
+        "Properties" : {
+            "Handler" : "DetermineBestImagesFunction::DetermineBestImagesFunction.Function::FunctionHandler",            
+            "Role"    : {"Fn::GetAtt" : [ "LambdaRole", "Arn"]},
+            "Runtime" : "dotnetcore2.1",
+            "MemorySize" : 256,
+            "Timeout" : 60,
+            "Code" : {
+                "S3Bucket" : "",
+                "S3Key" : "./DetermineBestImagesFunction"
+            }
+        }
+    },
+
+    "RenderMosaicFunction" : {
+        "Type" : "AWS::Lambda::Function",
+        "Properties" : {
+            "Handler" : "RenderMosaicFunction::RenderMosaicFunction.Function::FunctionHandler",            
+            "Role"    : {"Fn::GetAtt" : [ "LambdaRole", "Arn"]},
+            "Runtime" : "dotnetcore2.1",
+            "MemorySize" : 1024,
+            "Timeout" : 600,
+            "Code" : {
+                "S3Bucket" : "",
+                "S3Key" : "./RenderMosaicFunction"
+            }
+        }
+    },
+
+    "StateMachine" : {
+        "Type" : "AWS::StepFunctions::StateMachine",
+        "Properties": {
+            "RoleArn": { "Fn::GetAtt": [ "StateMachineRole", "Arn" ] },
+            "DefinitionString": { "Fn::Sub": "" }
+        }
+    },
+
+    "LambdaRole" : {
+        "Type" : "AWS::IAM::Role",
+        "Properties" : {
+            "AssumeRolePolicyDocument" : {
+                "Version" : "2012-10-17",
+                "Statement" : [
+                    {
+                        "Action" : [
+                            "sts:AssumeRole"
+                        ],
+                        "Effect" : "Allow",
+                        "Principal" : {
+                            "Service" : [
+                                "lambda.amazonaws.com"
+                            ]
+                        }
+                    }
+                ]
+            },
+            "ManagedPolicyArns" : [
+                "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+                "arn:aws:iam::aws:policy/AmazonS3FullAccess",
+                "arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess"
+            ]
+       }
+    },
+
+
+    "StateMachineRole" : {
+        "Type" : "AWS::IAM::Role",
+        "Properties" : {
+            "AssumeRolePolicyDocument" : {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Principal": {
+                    "Service": {"Fn::Sub" : "states.${AWS::Region}.amazonaws.com"}
+                  },
+                  "Action": "sts:AssumeRole"
+                }
+              ]
+            },
+            "Policies" : [{
+                "PolicyName": "StepFunctionLambdaInvoke",
+                "PolicyDocument": {
+                  "Version": "2012-10-17",
+                  "Statement": [
+                    {
+                      "Effect": "Allow",
+                      "Action": [
+                        "lambda:InvokeFunction"
+                      ],
+                      "Resource": "*"
+                    }
+                  ]
+                }
+            }]
+        }
+    }
+
+  },
+
+  "Outputs" : {
+  }
+}

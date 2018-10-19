@@ -1,0 +1,21 @@
+{
+  "Comment": "State Machine",
+  "StartAt": "CreateColorMap",
+  "States": {
+    "CreateColorMap": {
+      "Type": "Task",
+      "Resource": "${CreateColorMapFunction.Arn}",
+      "Next": "DetermineBestImages"
+    },
+    "DetermineBestImages": {
+      "Type": "Task",
+      "Resource": "${DetermineBestImagesFunction.Arn}",
+      "Next": "RenderMosaic"
+    },
+    "RenderMosaic": {
+      "Type": "Task",
+      "Resource": "${RenderMosaicFunction.Arn}",
+      "End": true
+    }
+  }
+}

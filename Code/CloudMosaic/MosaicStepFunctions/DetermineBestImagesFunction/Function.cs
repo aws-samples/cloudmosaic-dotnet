@@ -42,6 +42,7 @@ namespace DetermineBestImagesFunction
             context.Logger.LogLine($"Determing best fit for each tile: {mosaicLayoutInfo.ColorMap.GetLength(0)}x{mosaicLayoutInfo.ColorMap.GetLength(1)}");
             for(int x = 0; x < mosaicLayoutInfo.ColorMap.GetLength(0); x++)
             {
+                context.Logger.LogLine($"... Processing row {x}");
                 for(int y = 0; y < mosaicLayoutInfo.ColorMap.GetLength(1); y++)
                 {
                     var bestFit = DetermineBestImage(mosaicLayoutInfo.ColorMap[x, y], tileInfos);

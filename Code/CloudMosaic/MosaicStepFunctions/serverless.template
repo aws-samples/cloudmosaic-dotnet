@@ -27,8 +27,8 @@
             "Handler" : "DetermineBestImagesFunction::DetermineBestImagesFunction.Function::FunctionHandler",            
             "Role"    : {"Fn::GetAtt" : [ "LambdaRole", "Arn"]},
             "Runtime" : "dotnetcore2.1",
-            "MemorySize" : 256,
-            "Timeout" : 60,
+            "MemorySize" : 512,
+            "Timeout" : 600,
             "Code" : {
                 "S3Bucket" : "",
                 "S3Key" : "./DetermineBestImagesFunction"
@@ -42,7 +42,7 @@
             "Handler" : "RenderMosaicFunction::RenderMosaicFunction.Function::FunctionHandler",            
             "Role"    : {"Fn::GetAtt" : [ "LambdaRole", "Arn"]},
             "Runtime" : "dotnetcore2.1",
-            "MemorySize" : 1024,
+            "MemorySize" : 2048,
             "Timeout" : 600,
             "Code" : {
                 "S3Bucket" : "",

@@ -47,7 +47,7 @@ namespace CreateColorMapFunction
             context.Logger.LogLine($"Loading image {tmpPath}. File size {new FileInfo(tmpPath).Length}");
             using (var sourceImage = Image.Load(tmpPath))
             {
-                mosaicLayoutInfo.ColorMap = CreateMap(sourceImage);
+                mosaicLayoutInfo.ColorMap = CreateMap(state, sourceImage);
             }
 
             context.Logger.LogLine($"Color mape created: {mosaicLayoutInfo.ColorMap.GetLength(0)}x{mosaicLayoutInfo.ColorMap.GetLength(1)}");
@@ -58,10 +58,10 @@ namespace CreateColorMapFunction
             return state;
         }
 
-        public Rgba32[,] CreateMap(Image<Rgba32> image)
+        public Rgba32[,] CreateMap(State state, Image<Rgba32> image)
         {
-            int horizontalTiles = (int)image.Width / 20;
-            int verticalTiles = (int)image.Height / 20;
+            int horizontalTiles = (int)image.Width / state.PixelBlock;
+            int verticalTiles = (int)image.Height / state.PixelBlock;
 
             var colorMap = new Rgba32[horizontalTiles, verticalTiles];
 

@@ -45,9 +45,8 @@ namespace RenderMosaicFunction
             context.Logger.LogLine("Loading mosaic layout info");
             var mosaicLayoutInfo = await MosaicLayoutInfoManager.Load(this.S3Client, state.Bucket, state.MosaicLayoutInfoKey);
 
-            var tileSize = 50;
-            var width = mosaicLayoutInfo.ColorMap.GetLength(0) * tileSize;
-            var height = mosaicLayoutInfo.ColorMap.GetLength(1) * tileSize;
+            var width = mosaicLayoutInfo.ColorMap.GetLength(0) * state.TileSize;
+            var height = mosaicLayoutInfo.ColorMap.GetLength(1) * state.TileSize;
 
             var pixalData = new Rgba32[width * height];
             for (int i = 0; i < pixalData.Length; i++)
@@ -58,19 +57,19 @@ namespace RenderMosaicFunction
 
                 for (int x = 0; x < mosaicLayoutInfo.ColorMap.GetLength(0); x++)
                 {
-                    int xoffset = x * tileSize;
+                    int xoffset = x * state.TileSize;
                     context.Logger.LogLine($"Processing row {x}");
                     for (int y = 0; y < mosaicLayoutInfo.ColorMap.GetLength(1); y++)
                     {
-                        int yoffset = y * tileSize;
+                        int yoffset = y * state.TileSize;
                         var tileId = mosaicLayoutInfo.TileMap[x, y];
                         var tileKey = mosaicLayoutInfo.IdToTileKey[tileId];
 
                         using (var tileImage = await LoadTile(state.Bucket, tileKey, context))
                         {
-                            for(int x1 = 0; x1 < tileSize; x1++)
+                            for(int x1 = 0; x1 < state.TileSize; x1++)
                             {
-                                for(int y1 = 0; y1 < tileSize; y1++)
+                                for(int y1 = 0; y1 < state.TileSize; y1++)
                                 {
                                     rawImage[x1 + xoffset, y1 + yoffset] = tileImage[x1, y1];
                                 }

@@ -14,7 +14,8 @@ using Amazon.DynamoDBv2.Model;
 using Amazon.S3;
 using Amazon.S3.Model;
 
-using ImageMagick;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
 
 // Assembly attribute to enable the Lambda function's JSON input to be converted into a .NET class.
 [assembly: LambdaSerializer(typeof(Amazon.Lambda.Serialization.Json.JsonSerializer))]
@@ -29,7 +30,7 @@ namespace RenderMosaicFunction
         public Function()
         {
             this.S3Client = new AmazonS3Client();
-            this.TileImageCacheDirectory = "/tmp/tiles"; 
+            this.TileImageCacheDirectory = Path.Combine(Path.GetTempPath(), "tiles"); 
         }
 
         public async Task<State> FunctionHandler(State state, ILambdaContext context)
@@ -45,33 +46,44 @@ namespace RenderMosaicFunction
             var mosaicLayoutInfo = await MosaicLayoutInfoManager.Load(this.S3Client, state.Bucket, state.MosaicLayoutInfoKey);
 
             var tileSize = 50;
-            var width = 300 * tileSize;
-            var height = 200 * tileSize;
+            var width = mosaicLayoutInfo.ColorMap.GetLength(0) * tileSize;
+            var height = mosaicLayoutInfo.ColorMap.GetLength(1) * tileSize;
 
-            context.Logger.LogLine($"Creating canvas image to hold tiles {width}x{height}");
-            using (var rawImage = new MagickImage(MagickColor.FromRgb(0, 0, 0), width, height))
+            var pixalData = new Rgba32[width * height];
+            for (int i = 0; i < pixalData.Length; i++)
+                pixalData[i] = Rgba32.Black;
+
+            using (var rawImage = Image.LoadPixelData(pixalData, width, height))
             {
-                var rawPixels = rawImage.GetPixelsUnsafe();
 
                 for (int x = 0; x < mosaicLayoutInfo.ColorMap.GetLength(0); x++)
                 {
+                    int xoffset = x * tileSize;
                     context.Logger.LogLine($"Processing row {x}");
                     for (int y = 0; y < mosaicLayoutInfo.ColorMap.GetLength(1); y++)
                     {
+                        int yoffset = y * tileSize;
                         var tileId = mosaicLayoutInfo.TileMap[x, y];
                         var tileKey = mosaicLayoutInfo.IdToTileKey[tileId];
 
                         using (var tileImage = await LoadTile(state.Bucket, tileKey, context))
                         {
-                            var tileArea = tileImage.GetPixelsUnsafe().GetArea(0, 0, tileSize, tileSize);
-                            rawPixels.SetArea(x, y, tileSize, tileSize, tileArea);
+                            for(int x1 = 0; x1 < tileSize; x1++)
+                            {
+                                for(int y1 = 0; y1 < tileSize; y1++)
+                                {
+                                    rawImage[x1 + xoffset, y1 + yoffset] = tileImage[x1, y1];
+                                }
+                            }
                         }
                     }
                 }
 
                 var finalOutputStream = new MemoryStream();
-                rawImage.Write(finalOutputStream, MagickFormat.Png24);
+                rawImage.Save(finalOutputStream, new SixLabors.ImageSharp.Formats.Jpeg.JpegEncoder());
                 finalOutputStream.Position = 0;
+
+//                rawImage.Save(@"c:\temp\mosaic.jpg");
 
                 context.Logger.LogLine($"Saving mosaic to {state.DestinationKey} with size {finalOutputStream.Length}");
                 await this.S3Client.PutObjectAsync(new PutObjectRequest
@@ -80,15 +92,14 @@ namespace RenderMosaicFunction
                     Key = state.DestinationKey,
                     InputStream = finalOutputStream
                 });
-            }
 
-            
+            }
             
 
             return state;
         }
 
-        private async Task<MagickImage> LoadTile(string bucket, string tileKey, ILambdaContext context)
+        private async Task<Image<Rgba32>> LoadTile(string bucket, string tileKey, ILambdaContext context)
         {
             var localPath = Path.Combine(this.TileImageCacheDirectory, Path.GetFileName(tileKey));
             if(!File.Exists(localPath))
@@ -100,7 +111,7 @@ namespace RenderMosaicFunction
                 }
             }
 
-            return new MagickImage(localPath);
+            return Image.Load(localPath);
         }
     }
 }

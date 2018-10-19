@@ -1,4 +1,4 @@
-﻿using ImageMagick;
+﻿using SixLabors.ImageSharp.PixelFormats;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -15,7 +15,7 @@ namespace MosaicStepFunctions.Common
 
         public string Key { get; set; }
 
-        public MagickColor[,] ColorMap { get; set; }
+        public Rgba32[,] ColorMap { get; set; }
         public Dictionary<int, string> IdToTileKey { get; set; }
         public int[,] TileMap { get; set; }
 

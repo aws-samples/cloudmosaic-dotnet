@@ -3,10 +3,10 @@ WORKDIR /app
 
 FROM microsoft/dotnet:2.1-sdk AS build
 WORKDIR /src
-COPY ZipExpanderConsole/ZipExpanderConsole.csproj ZipExpanderConsole/
-RUN dotnet restore ZipExpanderConsole/ZipExpanderConsole.csproj
+COPY GalleryGenerator/ZipExpanderConsole/ZipExpanderConsole.csproj GalleryGenerator/ZipExpanderConsole/
+RUN dotnet restore GalleryGenerator/ZipExpanderConsole/ZipExpanderConsole.csproj
 COPY . .
-WORKDIR /src/ZipExpanderConsole
+WORKDIR /src/GalleryGenerator/ZipExpanderConsole
 RUN dotnet build ZipExpanderConsole.csproj -c Release -o /app
 
 FROM build AS publish

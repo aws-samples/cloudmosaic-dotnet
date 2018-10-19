@@ -11,7 +11,7 @@ using Amazon.DynamoDBv2.Model;
 
 using Amazon.S3;
 
-using ImageMagick;
+using SixLabors.ImageSharp.PixelFormats;
 
 // Assembly attribute to enable the Lambda function's JSON input to be converted into a .NET class.
 [assembly: LambdaSerializer(typeof(Amazon.Lambda.Serialization.Json.JsonSerializer))]
@@ -63,13 +63,13 @@ namespace DetermineBestImagesFunction
             return state;
         }
 
-        private TileImageInfo DetermineBestImage(MagickColor targetColor, IList<TileImageInfo> tileInfos)
+        private TileImageInfo DetermineBestImage(Rgba32 targetColor, IList<TileImageInfo> tileInfos)
         {
             int r, g, b;
 
             var differences = new List<Tuple<double, int>>();
 
-            MagickColor[] passColor = new MagickColor[4];
+            Rgba32[] passColor = new Rgba32[4];
             for (int i = 0; i < tileInfos.Count(); i++)
             {
                 passColor[0] = tileInfos[i].AverageTL;
@@ -85,8 +85,8 @@ namespace DetermineBestImagesFunction
                 g = Math.Abs(targetColor.G - (g / 4));
                 b = Math.Abs(targetColor.B - (b / 4));
 
-                var difference = r + g + b;
-                difference /= 3 * 255;
+                double difference = r + g + b;
+                difference /= 3.0 * 255.0;
 
                 differences.Add(new Tuple<double, int>(difference, i));
 
@@ -142,12 +142,12 @@ namespace DetermineBestImagesFunction
             return tileInfos;
         }
 
-        private MagickColor ConvertDDBMapToColor(Dictionary<string, AttributeValue> map)
+        private Rgba32 ConvertDDBMapToColor(Dictionary<string, AttributeValue> map)
         {
-            var c = new MagickColor();
-            c.R = ushort.Parse(map["R"].N);
-            c.G = ushort.Parse(map["G"].N);
-            c.B = ushort.Parse(map["B"].N);
+            var c = new Rgba32();
+            c.R = byte.Parse(map["R"].N);
+            c.G = byte.Parse(map["G"].N);
+            c.B = byte.Parse(map["B"].N);
             return c;
         }
     }

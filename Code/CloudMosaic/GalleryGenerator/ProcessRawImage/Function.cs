@@ -16,7 +16,11 @@ using Amazon.DynamoDBv2.Model;
 using Amazon.S3;
 using Amazon.S3.Model;
 
-using ImageMagick;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Formats;
+using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp.Processing;
+using Image = SixLabors.ImageSharp.Image;
 using System.Text;
 using System.Threading;
 
@@ -100,7 +104,7 @@ namespace ProcessRawImage
                         await response.WriteResponseStreamToFileAsync(tmpPath, false, default(CancellationToken));
                     }
                     context.Logger.LogLine("Reading image");
-                    using (var sourceImage = new MagickImage(tmpPath))
+                    using (var sourceImage = Image.Load(tmpPath))
                     {
                         var imageInfo = GetAverageColor(sourceImage, context);
                         context.Logger.LogLine($"Width: {sourceImage.Width}, Height: {sourceImage.Height} TL: {imageInfo.AverageTL}, TR: {imageInfo.AverageTR}, BL: {imageInfo.AverageBL}, BR: {imageInfo.AverageBR}");
@@ -159,7 +163,7 @@ namespace ProcessRawImage
             await DynamoDBClient.PutItemAsync(putRequest);
         }
 
-        public ImageInfo GetAverageColor(MagickImage image, ILambdaContext context)
+        public ImageInfo GetAverageColor(Image<Rgba32> image, ILambdaContext context)
         {
             var imageInfo = new ImageInfo();
 
@@ -174,9 +178,8 @@ namespace ProcessRawImage
             return imageInfo;
         }
 
-        private MagickColor GetAverageColor(MagickImage image, int sx, int sy, int width, int height, ILambdaContext context)
+        private Rgba32 GetAverageColor(Image<Rgba32> image, int sx, int sy, int width, int height, ILambdaContext context)
         {
-            var pixels = image.GetPixelsUnsafe();
             Int64 r = 0, g = 0, b = 0;
             int p = 0;
 
@@ -184,7 +187,7 @@ namespace ProcessRawImage
             {
                 for (int y = sy; y < height; y += this.Quality)
                 {
-                    var pixel = pixels[x, y].ToColor();
+                    var pixel = image[x, y];
                     r += pixel.R;
                     g += pixel.G;
                     b += pixel.B;
@@ -192,14 +195,20 @@ namespace ProcessRawImage
                 }
             }
 
-            return MagickColor.FromRgb((byte)(r / p), (byte)(g / p), (byte)(b / p));
+            return new Rgba32((byte)(r / p), (byte)(g / p), (byte)(b / p));
         }
 
-        private async Task<string> UploadTile(MagickImage image, string bucket, string originalKey, ILambdaContext context)
+        private async Task<string> UploadTile(Image<Rgba32> image, string bucket, string originalKey, ILambdaContext context)
         {
             var imageBuffer = new MemoryStream();
-            image.Resize(new MagickGeometry(this.TileSize, this.TileSize) { IgnoreAspectRatio = true });
-            image.Write(imageBuffer, MagickFormat.Jpg);
+
+            var resizeOptions = new ResizeOptions
+            {
+                Size = new SixLabors.Primitives.Size { Width = this.TileSize, Height = this.TileSize},
+                Mode = ResizeMode.Stretch
+            };
+            image.Mutate(x => x.Resize(resizeOptions));
+            image.Save(imageBuffer, new SixLabors.ImageSharp.Formats.Jpeg.JpegEncoder());
 
             imageBuffer.Position = 0;
 
@@ -223,7 +232,7 @@ namespace ProcessRawImage
         {
             var response = await RekognitionClient.DetectModerationLabelsAsync(new DetectModerationLabelsRequest
             {
-                Image = new Image
+                Image = new Amazon.Rekognition.Model.Image
                 {
                     S3Object = new Amazon.Rekognition.Model.S3Object
                     {

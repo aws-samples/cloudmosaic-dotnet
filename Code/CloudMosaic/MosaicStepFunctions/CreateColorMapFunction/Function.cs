@@ -10,9 +10,12 @@ using MosaicStepFunctions.Common;
 using Amazon.S3;
 using Amazon.S3.Model;
 
-using ImageMagick;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Processing;
+
 using System.IO;
 using System.Threading;
+using SixLabors.ImageSharp.PixelFormats;
 
 // Assembly attribute to enable the Lambda function's JSON input to be converted into a .NET class.
 [assembly: LambdaSerializer(typeof(Amazon.Lambda.Serialization.Json.JsonSerializer))]
@@ -31,7 +34,7 @@ namespace CreateColorMapFunction
 
         public async Task<State> FunctionHandler(State state, ILambdaContext context)
         {
-            var tmpPath = Path.Combine("/tmp/", Path.GetFileName(state.SourceKey));
+            var tmpPath = Path.Combine(Path.GetTempPath(), Path.GetFileName(state.SourceKey));
             context.Logger.LogLine("Saving image to tmp");
             using (var response = await S3Client.GetObjectAsync(state.Bucket, state.SourceKey))
             {
@@ -42,7 +45,7 @@ namespace CreateColorMapFunction
             state.MosaicLayoutInfoKey = mosaicLayoutInfo.Key;
 
             context.Logger.LogLine($"Loading image {tmpPath}. File size {new FileInfo(tmpPath).Length}");
-            using (var sourceImage = new MagickImage(tmpPath))
+            using (var sourceImage = Image.Load(tmpPath))
             {
                 mosaicLayoutInfo.ColorMap = CreateMap(sourceImage);
             }
@@ -55,19 +58,18 @@ namespace CreateColorMapFunction
             return state;
         }
 
-        public MagickColor[,] CreateMap(MagickImage image)
+        public Rgba32[,] CreateMap(Image<Rgba32> image)
         {
             int horizontalTiles = (int)image.Width / 20;
             int verticalTiles = (int)image.Height / 20;
 
-            var colorMap = new MagickColor[horizontalTiles, verticalTiles];
+            var colorMap = new Rgba32[horizontalTiles, verticalTiles];
 
             int tileWidth = (image.Width - image.Width % horizontalTiles) / horizontalTiles;
             int tileHeight = (image.Height - image.Height % verticalTiles) / verticalTiles;
 
             Int64 r, g, b;
             int pixelCount;
-            var pixels = image.GetPixelsUnsafe();
 
             int xPos, yPos;
 
@@ -84,14 +86,14 @@ namespace CreateColorMapFunction
                     {
                         for (yPos = tileHeight * y; yPos < y * tileHeight + tileHeight; yPos++)
                         {
-                            var c = pixels[xPos, yPos].ToColor();
+                            var c = image[xPos, yPos];
                             r += c.R;
                             g += c.G;
                             b += c.B;
                             pixelCount++;
                         }
                     }
-                    colorMap[x, y] = MagickColor.FromRgb((byte)(r / pixelCount), (byte)(g / pixelCount), (byte)(b / pixelCount));
+                    colorMap[x, y] = new Rgba32((byte)(r / pixelCount), (byte)(g / pixelCount), (byte)(b / pixelCount));
                 }
 
             }

@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <PackageReference Include="AWSSDK.S3" Version="3.3.25.1" />
+    <PackageReference Include="AWSSDK.DynamoDBv2" Version="3.3.14.6" />
     <PackageReference Include="AWSSDK.Rekognition" Version="3.3.11.5" />
     <PackageReference Include="Magick.NET-Q16-AnyCPU" Version="7.8.0" />
     <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />

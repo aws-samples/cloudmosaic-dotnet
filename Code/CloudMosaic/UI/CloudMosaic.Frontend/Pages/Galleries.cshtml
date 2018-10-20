@@ -1,0 +1,35 @@
+﻿@page
+@model CloudMosaic.Frontend.Pages.GalleriesModel
+@{
+    ViewData["Title"] = "Tile Galleries";
+}
+
+<h2>Tile Galleries</h2>
+
+<p>Here are the tile galleries you have created.</p>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th scope="col">Name</th>
+            <th scope="col">Status</th>
+            <th scope="col">Image Source</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var gallery in this.Model.Galleries)
+        {
+        <tr>
+            <td>@gallery.Name</td>
+            <td>@gallery.Status</td>
+            <td>@gallery.Attributions</td>
+        </tr>
+        }
+    </tbody>
+</table>
+
+<div class="row mt-3">
+    <div class="col-sm form-group">
+        <a asp-page-handler="CreateGallery" class="btn btn-link" asp-page="/CreateGallery">Create New Gallery</a>
+    </div>
+</div>

@@ -24,6 +24,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DetermineBestImagesFunction
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RenderMosaicFunction", "MosaicStepFunctions\RenderMosaicFunction\RenderMosaicFunction.csproj", "{4E1218C8-71A5-4E22-A486-3102A2E4392A}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "UI", "UI", "{56DFA280-1E12-43A2-A555-C4B6FB94002C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CloudMosaic.Frontend", "UI\CloudMosaic.Frontend\CloudMosaic.Frontend.csproj", "{95EA3877-38B4-40AB-BFAE-BD6DF4D3C09E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -54,6 +58,10 @@ Global
 		{4E1218C8-71A5-4E22-A486-3102A2E4392A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4E1218C8-71A5-4E22-A486-3102A2E4392A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4E1218C8-71A5-4E22-A486-3102A2E4392A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{95EA3877-38B4-40AB-BFAE-BD6DF4D3C09E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{95EA3877-38B4-40AB-BFAE-BD6DF4D3C09E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{95EA3877-38B4-40AB-BFAE-BD6DF4D3C09E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{95EA3877-38B4-40AB-BFAE-BD6DF4D3C09E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -65,6 +73,7 @@ Global
 		{92C4D2D8-267F-4B9E-9EB3-FB76C652D90E} = {0C3BCF58-98AB-4521-BCB1-A19AB8321673}
 		{84156FA9-F6AB-42CF-B1FD-1A1B2D1F27E3} = {0C3BCF58-98AB-4521-BCB1-A19AB8321673}
 		{4E1218C8-71A5-4E22-A486-3102A2E4392A} = {0C3BCF58-98AB-4521-BCB1-A19AB8321673}
+		{95EA3877-38B4-40AB-BFAE-BD6DF4D3C09E} = {56DFA280-1E12-43A2-A555-C4B6FB94002C}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {99499913-283A-4DEA-BB5F-EADBFE2C8FCF}

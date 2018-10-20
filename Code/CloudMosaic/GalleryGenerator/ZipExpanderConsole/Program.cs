@@ -39,15 +39,22 @@ namespace ZipExpanderConsole
 
                 int lastPercentReported = 0;
                 long totalRead = 0;
+
+                var httpMessage = new HttpRequestMessage
+                {
+                    RequestUri = new Uri(config.ImportUrl), 
+                    Method = HttpMethod.Get
+                };
+
                 Console.WriteLine($"Downloading zip archive from: {config.ImportUrl}");
                 using (var httpClient = new HttpClient())
-                using (var message = await httpClient.GetAsync(config.ImportUrl))
+                using (var message = await httpClient.SendAsync(httpMessage, HttpCompletionOption.ResponseHeadersRead))
                 using (var stream = await message.Content.ReadAsStreamAsync())
                 using (var localStream = File.OpenWrite(downloadZipPath))
                 {
-                    var buffer = new byte[8192];
+                    var buffer = new byte[32 * 1024];
                     int readLength;
-                    while ((readLength = await stream.ReadAsync(buffer, 0, buffer.Length)) > 0)
+                    while ((readLength = stream.Read(buffer, 0, buffer.Length)) > 0)
                     {
                         await localStream.WriteAsync(buffer, 0, readLength);
 

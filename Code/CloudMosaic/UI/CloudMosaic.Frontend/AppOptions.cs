@@ -13,8 +13,14 @@ namespace CloudMosaic.Frontend
         public string FargateSecurityGroup { get; set; }
         public string FargateSubnet { get; set; }
 
+
         public string TableGallery { get; set; }
+        public string TableGalleryItems { get; set; }
+        public string TableMosaic { get; set; }
+
+
         public string ImageBucket { get; set; }
+
 
         public string StateMachineArn { get; set; }        
         

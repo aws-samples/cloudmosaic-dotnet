@@ -16,9 +16,11 @@ namespace CloudMosaic.Frontend.Pages
     public class CreateGalleryModel : PageModel
     {
         DynamoDBContext _ddbContext;
-        private ImportJobManager _importJobMananger;
+        private MosaicManager _importJobMananger;
 
-        public CreateGalleryModel(IAmazonDynamoDB ddbClient, ImportJobManager importJobManager)
+        
+
+        public CreateGalleryModel(IAmazonDynamoDB ddbClient, MosaicManager importJobManager)
         {
             this._ddbContext = new DynamoDBContext(ddbClient, new DynamoDBContextConfig { Conversion = DynamoDBEntryConversion.V2});
             this._importJobMananger = importJobManager;
@@ -35,16 +37,11 @@ namespace CloudMosaic.Frontend.Pages
         [Required]
         public string ImportUrl { get; set; }
 
-        public void OnGet()
-        {
-
-        }
-
         public async Task<IActionResult> OnPostAsync()
         {
             var gallery = new Gallery
             {
-                UserId = Constants.DEFAULT_USER_ID,
+                UserId = UIConstants.DEFAULT_USER_ID,
                 GalleryId = $"{this.Name}-{Guid.NewGuid().ToString()}",
                 Name = this.Name,
                 Attributions = this.Attributions,
@@ -53,7 +50,7 @@ namespace CloudMosaic.Frontend.Pages
                 Status = Gallery.Statuses.Importing
             };
 
-            await this._importJobMananger.StartImport(gallery.UserId, gallery.GalleryId, this.ImportUrl);
+            await this._importJobMananger.StartGalleryImport(gallery.UserId, gallery.GalleryId, this.ImportUrl);
 
             await this._ddbContext.SaveAsync(gallery);
 

@@ -25,7 +25,7 @@ namespace CloudMosaic.Frontend.Pages
 
         public async Task OnGetAsync()
         {
-            var search = this._ddbContext.QueryAsync<Gallery>(Constants.DEFAULT_USER_ID);
+            var search = this._ddbContext.QueryAsync<Gallery>(UIConstants.DEFAULT_USER_ID);
 
             this.Galleries = await search.GetRemainingAsync();
         }

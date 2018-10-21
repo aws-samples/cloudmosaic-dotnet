@@ -42,11 +42,26 @@
             "Handler" : "RenderMosaicFunction::RenderMosaicFunction.Function::FunctionHandler",            
             "Role"    : {"Fn::GetAtt" : [ "LambdaRole", "Arn"]},
             "Runtime" : "dotnetcore2.1",
-            "MemorySize" : 2048,
+            "MemorySize" : 3008,
             "Timeout" : 600,
             "Code" : {
                 "S3Bucket" : "",
                 "S3Key" : "./RenderMosaicFunction"
+            }
+        }
+    },
+
+    "NotifyCompletionFunction" : {
+        "Type" : "AWS::Lambda::Function",
+        "Properties" : {
+            "Handler" : "NotifyCompletionFunction::NotifyCompletionFunction.Function::FunctionHandler",            
+            "Role"    : {"Fn::GetAtt" : [ "LambdaRole", "Arn"]},
+            "Runtime" : "dotnetcore2.1",
+            "MemorySize" : 128,
+            "Timeout" : 30,
+            "Code" : {
+                "S3Bucket" : "",
+                "S3Key" : "./NotifyCompletionFunction"
             }
         }
     },

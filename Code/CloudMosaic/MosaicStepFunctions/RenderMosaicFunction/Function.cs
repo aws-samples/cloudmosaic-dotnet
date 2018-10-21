@@ -17,6 +17,9 @@ using Amazon.S3.Model;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 
+using CloudMosaic.Common;
+using SixLabors.ImageSharp.Processing;
+
 // Assembly attribute to enable the Lambda function's JSON input to be converted into a .NET class.
 [assembly: LambdaSerializer(typeof(Amazon.Lambda.Serialization.Json.JsonSerializer))]
 
@@ -48,13 +51,15 @@ namespace RenderMosaicFunction
             var width = mosaicLayoutInfo.ColorMap.GetLength(0) * state.TileSize;
             var height = mosaicLayoutInfo.ColorMap.GetLength(1) * state.TileSize;
 
+            context.Logger.LogLine($"Creating pixel data array {width}x{height}");
             var pixalData = new Rgba32[width * height];
             for (int i = 0; i < pixalData.Length; i++)
                 pixalData[i] = Rgba32.Black;
 
+            context.Logger.LogLine($"Creating blank image");
             using (var rawImage = Image.LoadPixelData(pixalData, width, height))
             {
-
+                context.Logger.LogLine($"Created blank image");
                 for (int x = 0; x < mosaicLayoutInfo.ColorMap.GetLength(0); x++)
                 {
                     int xoffset = x * state.TileSize;
@@ -82,18 +87,56 @@ namespace RenderMosaicFunction
                 rawImage.Save(finalOutputStream, new SixLabors.ImageSharp.Formats.Jpeg.JpegEncoder());
                 finalOutputStream.Position = 0;
 
-//                rawImage.Save(@"c:\temp\mosaic.jpg");
+                //                rawImage.Save(@"c:\temp\mosaic.jpg");
 
-                context.Logger.LogLine($"Saving mosaic to {state.DestinationKey} with size {finalOutputStream.Length}");
+                var destinationKey = S3KeyManager.DetermineS3Key(state.UserId, state.MosaicId, S3KeyManager.ImageType.FullMosaic);
+                context.Logger.LogLine($"Saving full mosaic to {destinationKey} with size {finalOutputStream.Length}");
                 await this.S3Client.PutObjectAsync(new PutObjectRequest
                 {
                     BucketName = state.Bucket,
-                    Key = state.DestinationKey,
+                    Key = destinationKey,
                     InputStream = finalOutputStream
                 });
 
+                rawImage.Mutate(x => x.Resize(new ResizeOptions
+                {
+                    Size = new SixLabors.Primitives.Size { Width = Constants.IMAGE_WEB_WIDTH, Height = Constants.IMAGE_WEB_HEIGHT },
+                    Mode = ResizeMode.Stretch
+                }));
+
+                finalOutputStream = new MemoryStream();
+                rawImage.Save(finalOutputStream, new SixLabors.ImageSharp.Formats.Jpeg.JpegEncoder());
+                finalOutputStream.Position = 0;
+
+                destinationKey = S3KeyManager.DetermineS3Key(state.UserId, state.MosaicId, S3KeyManager.ImageType.WebMosaic);
+                context.Logger.LogLine($"Saving web mosaic to {destinationKey} with size {finalOutputStream.Length}");
+                await this.S3Client.PutObjectAsync(new PutObjectRequest
+                {
+                    BucketName = state.Bucket,
+                    Key = destinationKey,
+                    InputStream = finalOutputStream
+                });
+
+                rawImage.Mutate(x => x.Resize(new ResizeOptions
+                {
+                    Size = new SixLabors.Primitives.Size { Width = Constants.IMAGE_THUMBNAIL_WIDTH, Height = Constants.IMAGE_THUMBNAIL_HEIGHT },
+                    Mode = ResizeMode.Stretch
+                }));
+
+                finalOutputStream = new MemoryStream();
+                rawImage.Save(finalOutputStream, new SixLabors.ImageSharp.Formats.Jpeg.JpegEncoder());
+                finalOutputStream.Position = 0;
+
+                destinationKey = S3KeyManager.DetermineS3Key(state.UserId, state.MosaicId, S3KeyManager.ImageType.ThumbnailMosaic);
+                context.Logger.LogLine($"Saving thumbnail mosaic to {destinationKey} with size {finalOutputStream.Length}");
+                await this.S3Client.PutObjectAsync(new PutObjectRequest
+                {
+                    BucketName = state.Bucket,
+                    Key = destinationKey,
+                    InputStream = finalOutputStream
+                });
             }
-            
+
 
             return state;
         }

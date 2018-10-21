@@ -15,6 +15,11 @@
     "RenderMosaic": {
       "Type": "Task",
       "Resource": "${RenderMosaicFunction.Arn}",
+      "Next": "NotifyCompletion"
+    },
+    "NotifyCompletion": {
+      "Type": "Task",
+      "Resource": "${NotifyCompletionFunction.Arn}",
       "End": true
     }
   }

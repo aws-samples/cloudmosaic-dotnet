@@ -27,10 +27,11 @@ namespace CloudMosaic.Frontend
             services.Configure<AppOptions>(Configuration.GetSection("AppOptions"));
 
             services.AddAWSService<Amazon.DynamoDBv2.IAmazonDynamoDB>();
-            services.AddAWSService<Amazon.S3.IAmazonS3>();
             services.AddAWSService<Amazon.ECS.IAmazonECS>();
+            services.AddAWSService<Amazon.S3.IAmazonS3>();
+            services.AddAWSService<Amazon.StepFunctions.IAmazonStepFunctions>();
 
-            services.AddSingleton<ImportJobManager>();
+            services.AddSingleton<MosaicManager>();
 
 
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);

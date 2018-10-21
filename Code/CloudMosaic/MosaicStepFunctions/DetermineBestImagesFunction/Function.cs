@@ -33,7 +33,7 @@ namespace DetermineBestImagesFunction
         {
             var mosaicLayoutInfo = await MosaicLayoutInfoManager.Load(this.S3Client, state.Bucket, state.MosaicLayoutInfoKey);
 
-            var tileInfos = await LoadGalleryItems(state.GalleryId, context);
+            var tileInfos = await LoadGalleryItems(state.TableGalleryItems, state.GalleryId, context);
 
             Dictionary<string, int> s3KeyToId = new Dictionary<string, int>();
             mosaicLayoutInfo.IdToTileKey = new Dictionary<int, string>();
@@ -100,11 +100,11 @@ namespace DetermineBestImagesFunction
             return tileInfos[item.Item2];
         }
 
-        private async Task<List<TileImageInfo>> LoadGalleryItems(string galleryId, ILambdaContext context)
+        private async Task<List<TileImageInfo>> LoadGalleryItems(string tableName, string galleryId, ILambdaContext context)
         {
             var request = new QueryRequest
             {
-                TableName = "GalleryItems",
+                TableName = tableName,
                 ConsistentRead = false,
                 KeyConditionExpression = "GalleryId = :id",
                 ExpressionAttributeValues = new Dictionary<string, AttributeValue>

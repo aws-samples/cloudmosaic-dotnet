@@ -9,5 +9,9 @@
     <PackageReference Include="SixLabors.ImageSharp" Version="1.0.0-beta0005" />
     <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
   </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\CloudMosaic.Common\CloudMosaic.Common.csproj" />
+  </ItemGroup>
   
 </Project>

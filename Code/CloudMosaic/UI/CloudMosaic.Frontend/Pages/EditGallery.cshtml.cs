@@ -17,9 +17,9 @@ namespace CloudMosaic.Frontend.Pages
     public class EditGalleryModel : PageModel
     {
         DynamoDBContext _ddbContext;
-        private ImportJobManager _importJobMananger;
+        private MosaicManager _importJobMananger;
 
-        public EditGalleryModel(IAmazonDynamoDB ddbClient, ImportJobManager importJobManager)
+        public EditGalleryModel(IAmazonDynamoDB ddbClient, MosaicManager importJobManager)
         {
             this._ddbContext = new DynamoDBContext(ddbClient, new DynamoDBContextConfig { Conversion = DynamoDBEntryConversion.V2});
             this._importJobMananger = importJobManager;
@@ -44,7 +44,7 @@ namespace CloudMosaic.Frontend.Pages
         public async Task OnGet(string galleryId)
         {
             this.GalleryId = galleryId;
-            var gallery = await this._ddbContext.LoadAsync<Gallery>(Constants.DEFAULT_USER_ID, this.GalleryId);
+            var gallery = await this._ddbContext.LoadAsync<Gallery>(UIConstants.DEFAULT_USER_ID, this.GalleryId);
 
             this.Name = gallery.Name;
             this.Attributions = gallery.Attributions;
@@ -55,7 +55,7 @@ namespace CloudMosaic.Frontend.Pages
         {
             var gallery = new Gallery
             {
-                UserId = Constants.DEFAULT_USER_ID,
+                UserId = UIConstants.DEFAULT_USER_ID,
                 GalleryId = this.GalleryId,
                 Name = this.Name,
                 Attributions = this.Attributions,
@@ -65,7 +65,7 @@ namespace CloudMosaic.Frontend.Pages
             if (!string.IsNullOrEmpty(this.ImportUrl))
             {
                 gallery.Status = Gallery.Statuses.Importing;
-                await this._importJobMananger.StartImport(gallery.UserId, gallery.GalleryId, this.ImportUrl);                
+                await this._importJobMananger.StartGalleryImport(gallery.UserId, gallery.GalleryId, this.ImportUrl);                
             }
 
             await this._ddbContext.SaveAsync(gallery);

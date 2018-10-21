@@ -36,7 +36,37 @@
         }
     },
 
-    "RenderMosaicFunction" : {
+    "RenderMosaicSmallFunction" : {
+        "Type" : "AWS::Lambda::Function",
+        "Properties" : {
+            "Handler" : "RenderMosaicFunction::RenderMosaicFunction.Function::FunctionHandler",            
+            "Role"    : {"Fn::GetAtt" : [ "LambdaRole", "Arn"]},
+            "Runtime" : "dotnetcore2.1",
+            "MemorySize" : 1024,
+            "Timeout" : 600,
+            "Code" : {
+                "S3Bucket" : "",
+                "S3Key" : "./RenderMosaicFunction"
+            }
+        }
+    },
+
+    "RenderMosaicMediumFunction" : {
+        "Type" : "AWS::Lambda::Function",
+        "Properties" : {
+            "Handler" : "RenderMosaicFunction::RenderMosaicFunction.Function::FunctionHandler",            
+            "Role"    : {"Fn::GetAtt" : [ "LambdaRole", "Arn"]},
+            "Runtime" : "dotnetcore2.1",
+            "MemorySize" : 2048,
+            "Timeout" : 600,
+            "Code" : {
+                "S3Bucket" : "",
+                "S3Key" : "./RenderMosaicFunction"
+            }
+        }
+    },
+
+    "RenderMosaicLargeFunction" : {
         "Type" : "AWS::Lambda::Function",
         "Properties" : {
             "Handler" : "RenderMosaicFunction::RenderMosaicFunction.Function::FunctionHandler",            

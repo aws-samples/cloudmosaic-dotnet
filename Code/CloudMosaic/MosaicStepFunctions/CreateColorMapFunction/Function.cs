@@ -15,7 +15,7 @@ using SixLabors.ImageSharp.Processing;
 
 using System.IO;
 using System.Threading;
-using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp.PixelFormats;    
 
 // Assembly attribute to enable the Lambda function's JSON input to be converted into a .NET class.
 [assembly: LambdaSerializer(typeof(Amazon.Lambda.Serialization.Json.JsonSerializer))]
@@ -47,6 +47,24 @@ namespace CreateColorMapFunction
             context.Logger.LogLine($"Loading image {tmpPath}. File size {new FileInfo(tmpPath).Length}");
             using (var sourceImage = Image.Load(tmpPath))
             {
+                state.OriginalImagePixelCount = sourceImage.Width * sourceImage.Height;
+                if (state.OriginalImagePixelCount < State.SMALL_IMAGE_SIZE)
+                {
+                    state.PixelBlock = 3;
+                }
+                else if (state.OriginalImagePixelCount < State.MEDIUM_IMAGE_SIZE)
+                {
+                    state.PixelBlock = 5;
+                }
+                else if(state.OriginalImagePixelCount < State.MAX_IMAGE_SIZE)
+                {
+                    state.PixelBlock = 10;
+                }
+                else
+                {
+                    throw new Exception("Image too large to make a mosaic");
+                }
+                
                 mosaicLayoutInfo.ColorMap = CreateMap(state, sourceImage);
             }
 

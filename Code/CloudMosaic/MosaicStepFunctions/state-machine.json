@@ -10,11 +10,37 @@
     "DetermineBestImages": {
       "Type": "Task",
       "Resource": "${DetermineBestImagesFunction.Arn}",
-      "Next": "RenderMosaic"
+      "Next": "ChooseRenderer"
     },
-    "RenderMosaic": {
+    "ChooseRenderer" : {
+      "Type": "Choice",
+      "Choices" : [
+        {
+          "Variable": "$.OriginalImagePixelCount",
+          "NumericLessThan": 480000,
+          "Next": "RenderMosaicSmall"
+        },
+        {
+          "Variable": "$.OriginalImagePixelCount",
+          "NumericLessThan": 1920000,
+          "Next": "RenderMosaicMedium"
+        }
+      ],
+      "Default" : "RenderMosaicLarge"
+    },
+    "RenderMosaicSmall": {
       "Type": "Task",
-      "Resource": "${RenderMosaicFunction.Arn}",
+      "Resource": "${RenderMosaicSmallFunction.Arn}",
+      "Next": "NotifyCompletion"
+    },
+    "RenderMosaicMedium": {
+      "Type": "Task",
+      "Resource": "${RenderMosaicMediumFunction.Arn}",
+      "Next": "NotifyCompletion"
+    },
+    "RenderMosaicLarge": {
+      "Type": "Task",
+      "Resource": "${RenderMosaicLargeFunction.Arn}",
       "Next": "NotifyCompletion"
     },
     "NotifyCompletion": {

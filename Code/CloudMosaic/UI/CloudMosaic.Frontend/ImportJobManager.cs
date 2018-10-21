@@ -52,8 +52,8 @@ namespace CloudMosaic.Frontend
                 {
                     AwsvpcConfiguration = new AwsVpcConfiguration
                     {
-                        SecurityGroups = new List<string> { this._appOptions.FargateSecurityGroup },
-                        Subnets = new List<string> { this._appOptions.FargateSubnet },
+                        SecurityGroups = this._appOptions.FargateSecurityGroup.Split(',').ToList(),
+                        Subnets = this._appOptions.FargateSubnet.Split(',').ToList(),
                         AssignPublicIp = AssignPublicIp.ENABLED
                     }
                 }                

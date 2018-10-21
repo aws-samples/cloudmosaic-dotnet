@@ -14,6 +14,8 @@
             <th scope="col">Name</th>
             <th scope="col">Status</th>
             <th scope="col">Image Source</th>
+            <th scope="col">Public</th>
+            <th scope="col">Edit</th>
         </tr>
     </thead>
     <tbody>
@@ -23,6 +25,17 @@
             <td>@gallery.Name</td>
             <td>@gallery.Status</td>
             <td>@gallery.Attributions</td>
+            @if (@gallery.IsPublic)
+            {
+                <td><input class="form-check-input" type="checkbox" value="" id="defaultCheck2" disabled checked></td>                
+            }
+            else
+            {
+                <td><input class="form-check-input" type="checkbox" value="" id="defaultCheck2" disabled></td>                
+            }
+            <td>        
+                <a class="btn btn-link" href="@Url.Page("/EditGallery", new {GalleryId = gallery.GalleryId})">Edit</a>
+            </td>
         </tr>
         }
     </tbody>
@@ -30,6 +43,6 @@
 
 <div class="row mt-3">
     <div class="col-sm form-group">
-        <a asp-page-handler="CreateGallery" class="btn btn-link" asp-page="/CreateGallery">Create New Gallery</a>
+        <a class="btn btn-link" asp-page="/CreateGallery">Create New Gallery</a>
     </div>
 </div>

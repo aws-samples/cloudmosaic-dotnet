@@ -1,10 +1,10 @@
 ﻿@page
-@model CloudMosaic.Frontend.Pages.CreateGalleryModel
+@model CloudMosaic.Frontend.Pages.EditGalleryModel
 @{
-    ViewData["Title"] = "Create Tile Gallery";
+    ViewData["Title"] = "Edit Tile Gallery";
 }
 
-<h2>New Tile Gallery</h2>
+<h2>Edit Tile Gallery</h2>
 
 <div asp-validation-summary="All"></div>
 <form method="POST">
@@ -18,9 +18,13 @@
             <input asp-for="Attributions" class="form-control" />
         </div>
         <div class="col-sm form-group">
-            <label class="col-xs-3 control-label">Import URL</label>
+            <label class="col-xs-3 control-label">Is Public</label>
+            <input asp-for="IsPublic" class="form-control" />
+        </div>
+        <div class="col-sm form-group">
+            <label class="col-xs-3 control-label">URL to additional images</label>
             <input asp-for="ImportUrl" class="form-control" />
         </div>
     </div>
-    <input type="submit" value="Save" class="btn btn-primary" />
+    <input type="submit" value="Save" class="btn btn-primary"/>
 </form>

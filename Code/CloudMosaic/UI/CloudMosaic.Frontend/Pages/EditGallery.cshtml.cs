@@ -10,15 +10,16 @@ using CloudMosaic.Frontend.Models;
 
 using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.DataModel;
+using Amazon.S3.Model;
 
 namespace CloudMosaic.Frontend.Pages
 {
-    public class CreateGalleryModel : PageModel
+    public class EditGalleryModel : PageModel
     {
         DynamoDBContext _ddbContext;
         private ImportJobManager _importJobMananger;
 
-        public CreateGalleryModel(IAmazonDynamoDB ddbClient, ImportJobManager importJobManager)
+        public EditGalleryModel(IAmazonDynamoDB ddbClient, ImportJobManager importJobManager)
         {
             this._ddbContext = new DynamoDBContext(ddbClient, new DynamoDBContextConfig { Conversion = DynamoDBEntryConversion.V2});
             this._importJobMananger = importJobManager;
@@ -26,18 +27,28 @@ namespace CloudMosaic.Frontend.Pages
 
         [BindProperty]
         [Required]
+        public string GalleryId { get; set; }
+
+        [BindProperty]
         public string Name { get; set; }
 
         [BindProperty]
         public string Attributions { get; set; }
 
         [BindProperty]
-        [Required]
         public string ImportUrl { get; set; }
+        
+        [BindProperty]
+        public bool IsPublic { get; set; }
 
-        public void OnGet()
+        public async Task OnGet(string galleryId)
         {
+            this.GalleryId = galleryId;
+            var gallery = await this._ddbContext.LoadAsync<Gallery>(Constants.DEFAULT_USER_ID, this.GalleryId);
 
+            this.Name = gallery.Name;
+            this.Attributions = gallery.Attributions;
+            this.IsPublic = gallery.IsPublic;
         }
 
         public async Task<IActionResult> OnPostAsync()
@@ -45,14 +56,17 @@ namespace CloudMosaic.Frontend.Pages
             var gallery = new Gallery
             {
                 UserId = Constants.DEFAULT_USER_ID,
-                GalleryId = $"{this.Name}-{Guid.NewGuid().ToString()}",
+                GalleryId = this.GalleryId,
                 Name = this.Name,
                 Attributions = this.Attributions,
-                IsPublic = false,
-                Status = Gallery.Statuses.Importing
+                IsPublic =  this.IsPublic
             };
 
-            await this._importJobMananger.StartImport(gallery.UserId, gallery.GalleryId, this.ImportUrl);
+            if (!string.IsNullOrEmpty(this.ImportUrl))
+            {
+                gallery.Status = Gallery.Statuses.Importing;
+                await this._importJobMananger.StartImport(gallery.UserId, gallery.GalleryId, this.ImportUrl);                
+            }
 
             await this._ddbContext.SaveAsync(gallery);
 

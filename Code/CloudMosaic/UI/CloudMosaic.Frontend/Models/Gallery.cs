@@ -18,5 +18,7 @@ namespace CloudMosaic.Frontend.Models
         public string Attributions { get; set; }
 
         public Statuses Status { get; set; }
+        
+        public bool IsPublic { get; set; }
     }
 }

@@ -49,6 +49,7 @@ namespace CloudMosaic.Frontend.Pages
                 Name = this.Name,
                 Attributions = this.Attributions,
                 IsPublic = false,
+                CreateDate = DateTime.UtcNow,
                 Status = Gallery.Statuses.Importing
             };
 

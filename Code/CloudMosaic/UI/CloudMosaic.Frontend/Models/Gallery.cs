@@ -20,5 +20,7 @@ namespace CloudMosaic.Frontend.Models
         public Statuses Status { get; set; }
         
         public bool IsPublic { get; set; }
+        
+        public DateTime CreateDate { get; set; }
     }
 }

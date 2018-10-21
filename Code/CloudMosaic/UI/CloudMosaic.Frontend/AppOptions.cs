@@ -10,12 +10,13 @@ namespace CloudMosaic.Frontend
         public string ECSCluster { get; set; }
         public string ECSTaskDefinition { get; set; }
         public string ECSContainerDefinition { get; set; }
+        public string FargateSecurityGroup { get; set; }
+        public string FargateSubnet { get; set; }
 
         public string TableGallery { get; set; }
         public string ImageBucket { get; set; }
 
-        public string FargateSecurityGroup { get; set; }
-
-        public string FargateSubnet { get; set; }
+        public string StateMachineArn { get; set; }        
+        
     }
 }

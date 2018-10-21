@@ -38,7 +38,7 @@ namespace RenderMosaicFunction
 
         public async Task<State> FunctionHandler(State state, ILambdaContext context)
         {
-            if(Directory.Exists(this.TileImageCacheDirectory))
+            if (Directory.Exists(this.TileImageCacheDirectory))
             {
                 Directory.Delete(this.TileImageCacheDirectory, true);
             }
@@ -46,7 +46,8 @@ namespace RenderMosaicFunction
             Directory.CreateDirectory(this.TileImageCacheDirectory);
 
             context.Logger.LogLine("Loading mosaic layout info");
-            var mosaicLayoutInfo = await MosaicLayoutInfoManager.Load(this.S3Client, state.Bucket, state.MosaicLayoutInfoKey);
+            var mosaicLayoutInfo =
+                await MosaicLayoutInfoManager.Load(this.S3Client, state.Bucket, state.MosaicLayoutInfoKey);
 
             var width = mosaicLayoutInfo.ColorMap.GetLength(0) * state.TileSize;
             var height = mosaicLayoutInfo.ColorMap.GetLength(1) * state.TileSize;
@@ -72,9 +73,9 @@ namespace RenderMosaicFunction
 
                         using (var tileImage = await LoadTile(state.Bucket, tileKey, context))
                         {
-                            for(int x1 = 0; x1 < state.TileSize; x1++)
+                            for (int x1 = 0; x1 < state.TileSize; x1++)
                             {
-                                for(int y1 = 0; y1 < state.TileSize; y1++)
+                                for (int y1 = 0; y1 < state.TileSize; y1++)
                                 {
                                     rawImage[x1 + xoffset, y1 + yoffset] = tileImage[x1, y1];
                                 }
@@ -83,62 +84,58 @@ namespace RenderMosaicFunction
                     }
                 }
 
-                var finalOutputStream = new MemoryStream();
-                rawImage.Save(finalOutputStream, new SixLabors.ImageSharp.Formats.Jpeg.JpegEncoder());
-                finalOutputStream.Position = 0;
-
-                //                rawImage.Save(@"c:\temp\mosaic.jpg");
-
-                var destinationKey = S3KeyManager.DetermineS3Key(state.UserId, state.MosaicId, S3KeyManager.ImageType.FullMosaic);
-                context.Logger.LogLine($"Saving full mosaic to {destinationKey} with size {finalOutputStream.Length}");
-                await this.S3Client.PutObjectAsync(new PutObjectRequest
+                // Write full mosaic to S3
                 {
-                    BucketName = state.Bucket,
-                    Key = destinationKey,
-                    InputStream = finalOutputStream
-                });
+                    var finalOutputStream = new MemoryStream();
+                    rawImage.Save(finalOutputStream, new SixLabors.ImageSharp.Formats.Jpeg.JpegEncoder());
+                    finalOutputStream.Position = 0;
 
-                rawImage.Mutate(x => x.Resize(new ResizeOptions
-                {
-                    Size = new SixLabors.Primitives.Size { Width = Constants.IMAGE_WEB_WIDTH, Height = Constants.IMAGE_WEB_HEIGHT },
-                    Mode = ResizeMode.Stretch
-                }));
+                    var destinationKey =
+                        S3KeyManager.DetermineS3Key(state.UserId, state.MosaicId, S3KeyManager.ImageType.FullMosaic);
+                    context.Logger.LogLine(
+                        $"Saving full mosaic to {destinationKey} with size {finalOutputStream.Length}");
+                    await this.S3Client.PutObjectAsync(new PutObjectRequest
+                    {
+                        BucketName = state.Bucket,
+                        Key = destinationKey,
+                        InputStream = finalOutputStream
+                    });
+                }
 
-                finalOutputStream = new MemoryStream();
-                rawImage.Save(finalOutputStream, new SixLabors.ImageSharp.Formats.Jpeg.JpegEncoder());
-                finalOutputStream.Position = 0;
+                // Write web size mosaic to S3
+                await SaveResize(state, rawImage, Constants.IMAGE_WEB_WIDTH, Constants.IMAGE_WEB_HEIGHT,
+                    S3KeyManager.DetermineS3Key(state.UserId, state.MosaicId, S3KeyManager.ImageType.WebMosaic),
+                    context);
 
-                destinationKey = S3KeyManager.DetermineS3Key(state.UserId, state.MosaicId, S3KeyManager.ImageType.WebMosaic);
-                context.Logger.LogLine($"Saving web mosaic to {destinationKey} with size {finalOutputStream.Length}");
-                await this.S3Client.PutObjectAsync(new PutObjectRequest
-                {
-                    BucketName = state.Bucket,
-                    Key = destinationKey,
-                    InputStream = finalOutputStream
-                });
+                // Write thumbnail mosaic to S3
+                await SaveResize(state, rawImage, Constants.IMAGE_THUMBNAIL_WIDTH, Constants.IMAGE_THUMBNAIL_HEIGHT,
+                    S3KeyManager.DetermineS3Key(state.UserId, state.MosaicId, S3KeyManager.ImageType.ThumbnailMosaic),
+                    context);
 
-                rawImage.Mutate(x => x.Resize(new ResizeOptions
-                {
-                    Size = new SixLabors.Primitives.Size { Width = Constants.IMAGE_THUMBNAIL_WIDTH, Height = Constants.IMAGE_THUMBNAIL_HEIGHT },
-                    Mode = ResizeMode.Stretch
-                }));
-
-                finalOutputStream = new MemoryStream();
-                rawImage.Save(finalOutputStream, new SixLabors.ImageSharp.Formats.Jpeg.JpegEncoder());
-                finalOutputStream.Position = 0;
-
-                destinationKey = S3KeyManager.DetermineS3Key(state.UserId, state.MosaicId, S3KeyManager.ImageType.ThumbnailMosaic);
-                context.Logger.LogLine($"Saving thumbnail mosaic to {destinationKey} with size {finalOutputStream.Length}");
-                await this.S3Client.PutObjectAsync(new PutObjectRequest
-                {
-                    BucketName = state.Bucket,
-                    Key = destinationKey,
-                    InputStream = finalOutputStream
-                });
+                return state;
             }
+        }
 
+        private async Task SaveResize(State state, Image<Rgba32> image, int width, int height, string key, ILambdaContext context)
+        {
+            image.Mutate(x => x.Resize(new ResizeOptions
+            {
+                Size = new SixLabors.Primitives.Size { Width = width, Height = height },
+                Mode = ResizeMode.Stretch
+            }));
 
-            return state;
+            var stream = new MemoryStream();
+            image.Save(stream, new SixLabors.ImageSharp.Formats.Jpeg.JpegEncoder());
+            stream.Position = 0;
+
+            context.Logger.LogLine($"Saving web mosaic to {key} with size {stream.Length}");
+            await this.S3Client.PutObjectAsync(new PutObjectRequest
+            {
+                BucketName = state.Bucket,
+                Key = key,
+                InputStream = stream
+            });
+            
         }
 
         private async Task<Image<Rgba32>> LoadTile(string bucket, string tileKey, ILambdaContext context)

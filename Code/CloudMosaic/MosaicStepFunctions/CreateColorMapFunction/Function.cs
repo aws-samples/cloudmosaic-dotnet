@@ -35,45 +35,55 @@ namespace CreateColorMapFunction
         public async Task<State> FunctionHandler(State state, ILambdaContext context)
         {
             var tmpPath = Path.Combine(Path.GetTempPath(), Path.GetFileName(state.SourceKey));
-            context.Logger.LogLine("Saving image to tmp");
-            using (var response = await S3Client.GetObjectAsync(state.Bucket, state.SourceKey))
+            try
             {
-                await response.WriteResponseStreamToFileAsync(tmpPath, false, default(CancellationToken));
-            }
+                context.Logger.LogLine("Saving image to tmp");
+                using (var response = await S3Client.GetObjectAsync(state.Bucket, state.SourceKey))
+                {
+                    await response.WriteResponseStreamToFileAsync(tmpPath, false, default(CancellationToken));
+                }
 
-            var mosaicLayoutInfo = MosaicLayoutInfoManager.Create();
-            state.MosaicLayoutInfoKey = mosaicLayoutInfo.Key;
+                var mosaicLayoutInfo = MosaicLayoutInfoManager.Create();
+                state.MosaicLayoutInfoKey = mosaicLayoutInfo.Key;
 
-            context.Logger.LogLine($"Loading image {tmpPath}. File size {new FileInfo(tmpPath).Length}");
-            using (var sourceImage = Image.Load(tmpPath))
-            {
-                state.OriginalImagePixelCount = sourceImage.Width * sourceImage.Height;
-                if (state.OriginalImagePixelCount < State.SMALL_IMAGE_SIZE)
+                context.Logger.LogLine($"Loading image {tmpPath}. File size {new FileInfo(tmpPath).Length}");
+                using (var sourceImage = Image.Load(tmpPath))
                 {
-                    state.PixelBlock = 3;
-                }
-                else if (state.OriginalImagePixelCount < State.MEDIUM_IMAGE_SIZE)
-                {
-                    state.PixelBlock = 5;
-                }
-                else if(state.OriginalImagePixelCount < State.MAX_IMAGE_SIZE)
-                {
-                    state.PixelBlock = 10;
-                }
-                else
-                {
-                    throw new Exception("Image too large to make a mosaic");
-                }
+                    state.OriginalImagePixelCount = sourceImage.Width * sourceImage.Height;
+                    if (state.OriginalImagePixelCount < State.SMALL_IMAGE_SIZE)
+                    {
+                        state.PixelBlock = 3;
+                    }
+                    else if (state.OriginalImagePixelCount < State.MEDIUM_IMAGE_SIZE)
+                    {
+                        state.PixelBlock = 5;
+                    }
+                    else if(state.OriginalImagePixelCount < State.MAX_IMAGE_SIZE)
+                    {
+                        state.PixelBlock = 10;
+                    }
+                    else
+                    {
+                        throw new Exception("Image too large to make a mosaic");
+                    }
                 
-                mosaicLayoutInfo.ColorMap = CreateMap(state, sourceImage);
+                    mosaicLayoutInfo.ColorMap = CreateMap(state, sourceImage);
+                }
+
+                context.Logger.LogLine($"Color map created: {mosaicLayoutInfo.ColorMap.GetLength(0)}x{mosaicLayoutInfo.ColorMap.GetLength(1)}");
+
+                await MosaicLayoutInfoManager.Save(S3Client, state.Bucket, mosaicLayoutInfo);
+                context.Logger.LogLine($"Saving mosaic layout info to {mosaicLayoutInfo.Key}");
+
+                return state;
             }
-
-            context.Logger.LogLine($"Color mape created: {mosaicLayoutInfo.ColorMap.GetLength(0)}x{mosaicLayoutInfo.ColorMap.GetLength(1)}");
-
-            await MosaicLayoutInfoManager.Save(S3Client, state.Bucket, mosaicLayoutInfo);
-            context.Logger.LogLine($"Saving mosaic layout info to {mosaicLayoutInfo.Key}");
-
-            return state;
+            finally 
+            {
+                if (File.Exists(tmpPath))
+                {
+                    File.Delete(tmpPath);
+                }
+            }
         }
 
         public Rgba32[,] CreateMap(State state, Image<Rgba32> image)

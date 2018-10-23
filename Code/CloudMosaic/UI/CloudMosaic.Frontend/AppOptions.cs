@@ -18,6 +18,9 @@ namespace CloudMosaic.Frontend
         public string TableGalleryItems { get; set; }
         public string TableMosaic { get; set; }
 
+        public string JobQueueArn { get; set; }
+        public string JobDefinitionArn { get; set; }
+
 
         public string ImageBucket { get; set; }
 

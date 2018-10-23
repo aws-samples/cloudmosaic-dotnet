@@ -26,6 +26,7 @@ namespace CloudMosaic.Frontend
         {
             services.Configure<AppOptions>(Configuration.GetSection("AppOptions"));
 
+            services.AddAWSService<Amazon.Batch.IAmazonBatch>();
             services.AddAWSService<Amazon.DynamoDBv2.IAmazonDynamoDB>();
             services.AddAWSService<Amazon.ECS.IAmazonECS>();
             services.AddAWSService<Amazon.S3.IAmazonS3>();

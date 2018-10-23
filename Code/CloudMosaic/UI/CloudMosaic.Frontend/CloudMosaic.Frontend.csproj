@@ -5,6 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="AWSSDK.Batch" Version="3.3.5.20" />
     <PackageReference Include="AWSSDK.ECS" Version="3.3.18.4" />
     <PackageReference Include="AWSSDK.Extensions.NETCore.Setup" Version="3.3.6" />
     <PackageReference Include="AWSSDK.StepFunctions" Version="3.3.2.21" />

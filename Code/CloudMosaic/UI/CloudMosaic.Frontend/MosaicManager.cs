@@ -4,6 +4,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
+using Amazon.Batch;
+using Amazon.Batch.Model;
+
 using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.DataModel;
 
@@ -35,6 +38,7 @@ namespace CloudMosaic.Frontend
     {
         AppOptions _appOptions;
 
+        IAmazonBatch _batchClient;
         IAmazonDynamoDB _ddbClient;
         IAmazonECS _ecsClient;
         IAmazonS3 _s3Client;
@@ -42,9 +46,11 @@ namespace CloudMosaic.Frontend
 
         DynamoDBContext _ddbContext;
 
-        public MosaicManager(IOptions<AppOptions> appOptions, IAmazonDynamoDB ddbClient, IAmazonECS ecsClient, IAmazonS3 s3Client, IAmazonStepFunctions stepClient)
+        public MosaicManager(IOptions<AppOptions> appOptions, IAmazonBatch batchClient, IAmazonDynamoDB ddbClient, IAmazonECS ecsClient, IAmazonS3 s3Client, IAmazonStepFunctions stepClient)
         {
             this._appOptions = appOptions.Value;
+
+            this._batchClient = batchClient;
             this._ddbClient = ddbClient;
             this._ecsClient = ecsClient;
             this._s3Client = s3Client;
@@ -125,8 +131,30 @@ namespace CloudMosaic.Frontend
         }
 
 
-
         public async Task StartGalleryImport(string userId, string galleryId, string importUrl)
+        {
+            var submitRequest = new SubmitJobRequest
+            {
+                JobQueue = this._appOptions.JobQueueArn,
+                JobDefinition = this._appOptions.JobDefinitionArn,
+                JobName = $"{galleryId}",
+                ContainerOverrides = new ContainerOverrides
+                {
+                    Environment = new List<Amazon.Batch.Model.KeyValuePair>
+                    {
+                                new Amazon.Batch.Model.KeyValuePair{Name = Constants.ZIP_EXPANDER_BUCKET, Value = this._appOptions.ImageBucket},
+                                new Amazon.Batch.Model.KeyValuePair{Name = Constants.ZIP_EXPANDER_DDB_TABLE, Value = this._appOptions.TableGallery},
+                                new Amazon.Batch.Model.KeyValuePair{Name = Constants.ZIP_EXPANDER_USER_ID, Value = userId},
+                                new Amazon.Batch.Model.KeyValuePair{Name = Constants.ZIP_EXPANDER_GALLERY_ID, Value = galleryId},
+                                new Amazon.Batch.Model.KeyValuePair{Name = Constants.ZIP_EXPANDER_IMPORT_URL, Value = importUrl}
+                    }
+                }
+            };
+
+            await this._batchClient.SubmitJobAsync(submitRequest);
+        }
+
+        public async Task StartGalleryImport1(string userId, string galleryId, string importUrl)
         {
             var runRequest = new RunTaskRequest
             {

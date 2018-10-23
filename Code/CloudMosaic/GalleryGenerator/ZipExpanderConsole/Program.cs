@@ -14,7 +14,11 @@ using Amazon.DynamoDBv2.Model;
 using Amazon.S3;
 using Amazon.S3.Model;
 
-using ImageMagick;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Formats;
+using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp.Processing;
+using Image = SixLabors.ImageSharp.Image;
 
 namespace ZipExpanderConsole
 {
@@ -22,6 +26,7 @@ namespace ZipExpanderConsole
     {
         static async Task Main(string[] args)
         {
+            const long IMAGE_MAX_SIZE = 7 * 1048576;
             var config = GetConfig(args);
             var extractDirectoryRoot = Path.Combine(config.Temp, DateTime.Now.Ticks.ToString());
             var extractDirectoryImages = Path.Combine(extractDirectoryRoot, "images");
@@ -81,12 +86,18 @@ namespace ZipExpanderConsole
                         try
                         {
                             Console.WriteLine($"{processed}/{entries.Count} Processing {Path.GetFileName(entry.FullName)}");
-                            var content = new MemoryStream();
+                            Stream content = new MemoryStream();
                             using (var zipStream = entry.Open())
                             {
                                 zipStream.CopyTo(content);
                             }
                             content.Position = 0;
+
+                            if(IMAGE_MAX_SIZE <= content.Length)
+                            {
+                                Console.WriteLine($"Skipping {entry.FullName} of size {content.Length} exceeds max size of {IMAGE_MAX_SIZE}.");
+                                continue;
+                            }
 
                             var destinationKey = $"Galleries/Raw/{config.UserId}/{config.GalleryId}/{Path.GetFileName(entry.FullName)}";
                             await s3Client.PutObjectAsync(new PutObjectRequest

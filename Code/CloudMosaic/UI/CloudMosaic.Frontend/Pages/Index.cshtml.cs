@@ -43,13 +43,13 @@ namespace CloudMosaic.Frontend.Pages
                 {
                     MosaicFullUrl = this._s3Client.GetPreSignedURL(new GetPreSignedUrlRequest
                     {
-                        BucketName = _appOptions.ImageBucket,
+                        BucketName = _appOptions.MosaicStorageBucket,
                         Key = S3KeyManager.DetermineS3Key(UIConstants.DEFAULT_USER_ID, item.MosaicId, S3KeyManager.ImageType.FullMosaic),
                         Expires = DateTime.UtcNow.AddHours(1)
                     }),
                     MosaicThumbnailUrl = this._s3Client.GetPreSignedURL(new GetPreSignedUrlRequest
                     {
-                        BucketName = _appOptions.ImageBucket,
+                        BucketName = _appOptions.MosaicStorageBucket,
                         Key = S3KeyManager.DetermineS3Key(UIConstants.DEFAULT_USER_ID, item.MosaicId, S3KeyManager.ImageType.ThumbnailMosaic),
                         Expires = DateTime.UtcNow.AddHours(1)
                     })

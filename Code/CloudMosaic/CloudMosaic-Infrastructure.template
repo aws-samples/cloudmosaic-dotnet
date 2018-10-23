@@ -1,0 +1,361 @@
+{
+	"AWSTemplateFormatVersion" : "2010-09-09",
+
+	"Description" : "",
+
+	"Parameters" : {
+
+		"Stage" : {
+		    "Type" : "String",
+            "Default" : "prod",
+            "AllowedValues" : ["gamma", "prod"]
+		}
+
+	},
+
+	"Resources" : {
+
+		"MosaicStorageBucket" : {
+		    "Type" : "AWS::S3::Bucket",
+            "DeletionPolicy" : "Retain",
+		    "Properties" : {
+		    }
+		},
+
+
+		"TableGallery" : {
+		    "Type" : "AWS::DynamoDB::Table",
+		    "Properties" : {
+		        "AttributeDefinitions" : [
+					{"AttributeName" : "UserId", "AttributeType" : "S"},
+					{"AttributeName" : "GalleryId", "AttributeType" : "S"}
+		        ],
+		        "KeySchema"            : [
+					{"AttributeName" : "UserId", "KeyType" : "HASH"},
+					{"AttributeName" : "GalleryId", "KeyType" : "RANGE"}
+		        ],
+		        "ProvisionedThroughput" : {
+		            "ReadCapacityUnits" : "10",
+		            "WriteCapacityUnits" : "1"
+		        },
+                "TableName" : {"Fn::Join" : [ "", ["Gallery-", { "Ref" : "Stage" } ] ]}
+		    }
+		},
+
+		"TableGalleryItems" : {
+		    "Type" : "AWS::DynamoDB::Table",
+		    "Properties" : {
+		        "AttributeDefinitions" : [
+					{"AttributeName" : "GalleryId", "AttributeType" : "S"},
+					{"AttributeName" : "TileKey", "AttributeType" : "S"}
+		        ],
+		        "KeySchema"            : [
+					{"AttributeName" : "GalleryId", "KeyType" : "HASH"},
+					{"AttributeName" : "TileKey", "KeyType" : "RANGE"}
+		        ],
+		        "ProvisionedThroughput" : {
+		            "ReadCapacityUnits" : "30",
+		            "WriteCapacityUnits" : "30"
+		        },
+                "TableName" : {"Fn::Join" : [ "", ["GalleryItem-", { "Ref" : "Stage" } ] ]}
+		    }
+		},
+
+		"TableMosaic" : {
+		    "Type" : "AWS::DynamoDB::Table",
+		    "Properties" : {
+		        "AttributeDefinitions" : [
+					{"AttributeName" : "UserId", "AttributeType" : "S"},
+					{"AttributeName" : "MosaicId", "AttributeType" : "S"}
+		        ],
+		        "KeySchema"            : [
+					{"AttributeName" : "UserId", "KeyType" : "HASH"},
+					{"AttributeName" : "MosaicId", "KeyType" : "RANGE"}
+		        ],
+		        "ProvisionedThroughput" : {
+		            "ReadCapacityUnits" : "5",
+		            "WriteCapacityUnits" : "5"
+		        },
+                "TableName" : {"Fn::Join" : [ "", ["Mosaic-", { "Ref" : "Stage" } ] ]}
+		    }
+		},
+
+        "ZipExpanderConsoleRepository" : {
+            "Type" : "AWS::ECR::Repository",
+            "Properties" : {
+				
+            }
+        },
+
+
+		"MosaicVpc" : {
+		    "Type" : "AWS::EC2::VPC",
+		    "Properties" : {
+		        "CidrBlock" : "10.0.0.0/16"
+		    }
+		},
+
+        "SubnetA" : {
+            "Type" : "AWS::EC2::Subnet",
+            "Properties" : {
+                "CidrBlock" : "10.0.0.0/24",
+                "VpcId"     : { "Ref" : "MosaicVpc" },
+				"MapPublicIpOnLaunch" : "True"
+            }
+        },
+
+        "SubnetB" : {
+            "Type" : "AWS::EC2::Subnet",
+            "Properties" : {
+                "CidrBlock" : "10.0.1.0/24",
+                "VpcId"     : { "Ref" : "MosaicVpc" },
+				"MapPublicIpOnLaunch" : "True"
+            }
+        },
+
+        "SubnetC" : {
+            "Type" : "AWS::EC2::Subnet",
+            "Properties" : {
+                "CidrBlock" : "10.0.2.0/24",
+                "VpcId"     : { "Ref" : "MosaicVpc" },
+				"MapPublicIpOnLaunch" : "True"
+            }
+        },
+
+        "BatchSecurityGroup" : {
+            "Type" : "AWS::EC2::SecurityGroup",
+            "Properties" : {
+				"VpcId" : { "Ref" : "MosaicVpc" },
+                "GroupDescription" : "Security Group for the Batch compute environment"
+            }
+        },
+
+		"InternetGateway" : {
+		  "Type" : "AWS::EC2::InternetGateway",
+          "Properties" : {
+
+		  }
+		},
+		"VPCGatewayAttachment" : {
+		  "Type" : "AWS::EC2::VPCGatewayAttachment",
+		  "Properties" : {
+			"VpcId" : { "Ref" : "MosaicVpc" },
+			"InternetGatewayId" : { "Ref" : "InternetGateway" }
+		  }
+		},
+		"RouteTable" : {
+		  "Type" : "AWS::EC2::RouteTable",
+		  "Properties" : {
+			"VpcId" : { "Ref" : "MosaicVpc" }
+		  }
+		},
+
+		"Route" : {
+		  "Type" : "AWS::EC2::Route",
+		  "Properties" : {
+			"RouteTableId" : { "Ref" : "RouteTable" },
+			"DestinationCidrBlock" : "0.0.0.0/0",
+			"GatewayId" : { "Ref" : "InternetGateway" }
+		  }
+		},
+
+		"SubnetARouteTableAssociation" : {
+		  "Type" : "AWS::EC2::SubnetRouteTableAssociation",
+		  "Properties" : {
+			"RouteTableId" : { "Ref" : "RouteTable" },
+			"SubnetId" : { "Ref" : "SubnetA" }
+		  }
+		},
+
+		"SubnetBRouteTableAssociation" : {
+		  "Type" : "AWS::EC2::SubnetRouteTableAssociation",
+		  "Properties" : {
+			"RouteTableId" : { "Ref" : "RouteTable" },
+			"SubnetId" : { "Ref" : "SubnetB" }
+		  }
+		},
+
+		"SubnetCRouteTableAssociation" : {
+		  "Type" : "AWS::EC2::SubnetRouteTableAssociation",
+		  "Properties" : {
+			"RouteTableId" : { "Ref" : "RouteTable" },
+			"SubnetId" : { "Ref" : "SubnetC" }
+		  }
+		},
+
+		"IamInstanceProfile" : {
+		  "Type" : "AWS::IAM::InstanceProfile",
+		  "Properties" : {
+			"Roles" : [{ "Ref" : "BatchRole" }]
+		  }
+		},
+
+		"BatchRole" : {
+		  "Type" : "AWS::IAM::Role",
+		  "Properties" : {
+			"AssumeRolePolicyDocument" : {
+			  "Version" : "2008-10-17",
+			  "Statement" : [
+				{
+				  "Sid" : "",
+				  "Effect" : "Allow",
+				  "Principal" : {
+					"Service" : "ec2.amazonaws.com"
+				  },
+				  "Action" : "sts:AssumeRole"
+				}
+			  ]
+			},
+			"ManagedPolicyArns" : [
+			  "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role",
+				"arn:aws:iam::aws:policy/AmazonS3FullAccess",
+				"arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess",
+				"arn:aws:iam::aws:policy/AmazonRekognitionFullAccess"        ]
+		  }
+		},
+
+        "BatchServiceRole" : {
+            "Type" : "AWS::IAM::Role",
+            "Properties" : {
+                "AssumeRolePolicyDocument" : {
+					
+					"Version": "2008-10-17",
+					"Statement": [
+						{
+							"Effect": "Allow",
+							"Principal": {
+							"Service": "batch.amazonaws.com"
+							},
+							"Action": "sts:AssumeRole"
+						}
+					]
+                },
+                "ManagedPolicyArns" : [
+					"arn:aws:iam::aws:policy/service-role/AWSBatchServiceRole"
+				]
+            }
+        },
+
+		"GalleryComputeEnvironment" : {
+		    "Type" : "AWS::Batch::ComputeEnvironment",
+		    "Properties" : {
+		        "ComputeResources" : {
+		            "InstanceRole" : { "Ref" : "IamInstanceProfile" },
+		            "InstanceTypes" : [
+						"optimal"
+		            ],
+		            "MaxvCpus"      : "256",
+		            "MinvCpus"      : "0",
+		            "SecurityGroupIds" : [
+						{ "Ref" : "BatchSecurityGroup" }
+		            ],
+		            "Subnets"          : [
+						{ "Ref" : "SubnetA" },
+                        { "Ref" : "SubnetB" },
+                        { "Ref" : "SubnetC" }
+		            ],
+		            "Type"             : "EC2"
+		        },
+		        "ServiceRole"      : { "Ref" : "BatchServiceRole" },
+		        "Type"             : "MANAGED"
+		    }
+		},
+
+        "ZipExpanderJobQueue" : {
+            "Type" : "AWS::Batch::JobQueue",
+            "Properties" : {
+                "ComputeEnvironmentOrder" : [
+					{"ComputeEnvironment" : { "Ref" : "GalleryComputeEnvironment" }, "Order" : 1}
+                ],
+                "Priority"                : "1",
+                "State" : "ENABLED"
+            }
+        },
+
+        "ZipExpanderJobDefinition" : {
+            "Type" : "AWS::Batch::JobDefinition",
+            "Properties" : {
+                "ContainerProperties" : {
+                    "Image" :  {"Fn::Join" : [ "", [{ "Ref" : "AWS::AccountId" }, ".dkr.ecr.", { "Ref" : "AWS::Region" }, ".amazonaws.com/", { "Ref" : "ZipExpanderConsoleRepository" }, ":", { "Ref" : "Stage" } ] ]},
+                    "Memory" : "1024",
+                    "Vcpus"  : "1"
+                },
+                "Type"                : "container"
+            }
+        },
+
+
+		"ParameterMosaicStorageBucket" : {
+            "Type" : "AWS::SSM::Parameter",
+            "Properties" : {
+                "Type" : "String",
+                "Value" : { "Ref" : "MosaicStorageBucket" },
+                "Name" : {"Fn::Join" : [ "", ["/CloudMosaic/", { "Ref" : "Stage" }, "/MosaicStorageBucket" ] ]}
+            }
+        },
+
+		"ParameterTableGallery" : {
+            "Type" : "AWS::SSM::Parameter",
+            "Properties" : {
+                "Type" : "String",
+                "Value" : { "Ref" : "TableGallery" },
+                "Name" : {"Fn::Join" : [ "", ["/CloudMosaic/", { "Ref" : "Stage" }, "/TableGallery" ] ]}
+            }
+        },
+
+		"ParameterTableGalleryItems" : {
+            "Type" : "AWS::SSM::Parameter",
+            "Properties" : {
+                "Type" : "String",
+                "Value" : { "Ref" : "TableGalleryItems" },
+                "Name" : {"Fn::Join" : [ "", ["/CloudMosaic/", { "Ref" : "Stage" }, "/TableGalleryItems" ] ]}
+            }
+        },
+
+        "ParameterTableMosaic" : {
+            "Type" : "AWS::SSM::Parameter",
+            "Properties" : {
+                "Type" : "String",
+                "Value" : { "Ref" : "TableMosaic" },
+                "Name" : {"Fn::Join" : [ "", ["/CloudMosaic/", { "Ref" : "Stage" }, "/TableMosaic" ] ]}
+            }
+        },
+
+		"ParameterJobQueueArn" : {
+            "Type" : "AWS::SSM::Parameter",
+            "Properties" : {
+                "Type" : "String",
+                "Value" : { "Ref" : "ZipExpanderJobQueue" },
+                "Name" : {"Fn::Join" : [ "", ["/CloudMosaic/", { "Ref" : "Stage" }, "/JobQueueArn" ] ]}
+            }
+        },
+
+		"ParameterJobDefinitionArn" : {
+            "Type" : "AWS::SSM::Parameter",
+            "Properties" : {
+                "Type" : "String",
+                "Value" : { "Ref" : "ZipExpanderJobDefinition" },
+                "Name" : {"Fn::Join" : [ "", ["/CloudMosaic/", { "Ref" : "Stage" }, "/JobDefinitionArn" ] ]}
+            }
+        },
+
+		"ParameterZipExpanderConsoleRepository" : {
+            "Type" : "AWS::SSM::Parameter",
+            "Properties" : {
+                "Type" : "String",
+                "Value" : {"Fn::Join" : [ "", [{ "Ref" : "AWS::AccountId" }, ".dkr.ecr.", { "Ref" : "AWS::Region" }, ".amazonaws.com/", { "Ref" : "ZipExpanderConsoleRepository" }, ":", { "Ref" : "Stage" } ] ]},
+                "Name" : {"Fn::Join" : [ "", ["/CloudMosaic/", { "Ref" : "Stage" }, "/ZipExpanderConsoleRepository" ] ]}
+            }
+        }
+	},
+
+	"Outputs" : {
+		"JobDefinitionArn" : {
+		    "Value" : { "Ref" : "ZipExpanderJobDefinition" }
+		},
+		"JobQueueArn" : {
+		    "Value" : { "Ref" : "ZipExpanderJobQueue" }
+		}
+
+	}
+}

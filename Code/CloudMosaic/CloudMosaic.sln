@@ -26,11 +26,16 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RenderMosaicFunction", "Mos
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "UI", "UI", "{56DFA280-1E12-43A2-A555-C4B6FB94002C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CloudMosaic.Frontend", "UI\CloudMosaic.Frontend\CloudMosaic.Frontend.csproj", "{95EA3877-38B4-40AB-BFAE-BD6DF4D3C09E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CloudMosaic.Frontend", "UI\CloudMosaic.Frontend\CloudMosaic.Frontend.csproj", "{95EA3877-38B4-40AB-BFAE-BD6DF4D3C09E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CloudMosaic.Common", "CloudMosaic.Common\CloudMosaic.Common.csproj", "{F4D58A0E-487F-442B-AB4F-EBD29582BD4C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CloudMosaic.Common", "CloudMosaic.Common\CloudMosaic.Common.csproj", "{F4D58A0E-487F-442B-AB4F-EBD29582BD4C}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NotifyCompletionFunction", "MosaicStepFunctions\NotifyCompletionFunction\NotifyCompletionFunction.csproj", "{313DB664-C258-4A50-8F05-0F311AB94BAA}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{DBB2BEAB-D7DA-42E4-9930-054C05112AB9}"
+	ProjectSection(SolutionItems) = preProject
+		common-infrastructure.template = common-infrastructure.template
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

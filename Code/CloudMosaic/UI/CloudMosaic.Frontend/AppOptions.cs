@@ -22,7 +22,7 @@ namespace CloudMosaic.Frontend
         public string JobDefinitionArn { get; set; }
 
 
-        public string ImageBucket { get; set; }
+        public string MosaicStorageBucket { get; set; }
 
 
         public string StateMachineArn { get; set; }        

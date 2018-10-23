@@ -72,7 +72,7 @@ namespace CloudMosaic.Frontend
 
                 var putRequest = new PutObjectRequest
                 {
-                    BucketName = this._appOptions.ImageBucket,
+                    BucketName = this._appOptions.MosaicStorageBucket,
                     Key = S3KeyManager.DetermineS3Key(userId, mosaicId, S3KeyManager.ImageType.Original),
                     FilePath = tempFile
                 };
@@ -90,7 +90,7 @@ namespace CloudMosaic.Frontend
                 var input = new ExecutionInput();
                 input.TableGalleryItems = this._appOptions.TableGalleryItems;
                 input.TableMosaic = this._appOptions.TableMosaic;
-                input.Bucket = this._appOptions.ImageBucket;
+                input.Bucket = this._appOptions.MosaicStorageBucket;
                 input.SourceKey = putRequest.Key;
                 input.GalleryId = galleryId;
                 input.MosaicId = mosaicId;
@@ -142,7 +142,7 @@ namespace CloudMosaic.Frontend
                 {
                     Environment = new List<Amazon.Batch.Model.KeyValuePair>
                     {
-                                new Amazon.Batch.Model.KeyValuePair{Name = Constants.ZIP_EXPANDER_BUCKET, Value = this._appOptions.ImageBucket},
+                                new Amazon.Batch.Model.KeyValuePair{Name = Constants.ZIP_EXPANDER_BUCKET, Value = this._appOptions.MosaicStorageBucket},
                                 new Amazon.Batch.Model.KeyValuePair{Name = Constants.ZIP_EXPANDER_DDB_TABLE, Value = this._appOptions.TableGallery},
                                 new Amazon.Batch.Model.KeyValuePair{Name = Constants.ZIP_EXPANDER_USER_ID, Value = userId},
                                 new Amazon.Batch.Model.KeyValuePair{Name = Constants.ZIP_EXPANDER_GALLERY_ID, Value = galleryId},
@@ -169,7 +169,7 @@ namespace CloudMosaic.Frontend
                             Name = this._appOptions.ECSContainerDefinition,
                             Environment = new List<KeyValuePair>
                             {
-                                new KeyValuePair{Name = Constants.ZIP_EXPANDER_BUCKET, Value = this._appOptions.ImageBucket},
+                                new KeyValuePair{Name = Constants.ZIP_EXPANDER_BUCKET, Value = this._appOptions.MosaicStorageBucket},
                                 new KeyValuePair{Name = Constants.ZIP_EXPANDER_DDB_TABLE, Value = this._appOptions.TableGallery},
                                 new KeyValuePair{Name = Constants.ZIP_EXPANDER_USER_ID, Value = userId},
                                 new KeyValuePair{Name = Constants.ZIP_EXPANDER_GALLERY_ID, Value = galleryId},

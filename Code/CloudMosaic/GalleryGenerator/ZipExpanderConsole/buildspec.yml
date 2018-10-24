@@ -6,7 +6,7 @@ env:
 phases:
   install:
     commands:
-      - dotnet tool install -g Amazon.Lambda.ECS
+      - dotnet tool install -g Amazon.ECS.Tools
   build:
     commands:
       - dotnet ecs push-image --tag $DOCKER_TAG

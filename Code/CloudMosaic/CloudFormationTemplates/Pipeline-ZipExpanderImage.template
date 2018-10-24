@@ -1,0 +1,235 @@
+{
+	"AWSTemplateFormatVersion" : "2010-09-09",
+
+	"Description" : "",
+
+	"Parameters" : {
+
+		"Stage" : {
+		    "Type" : "String",
+            "Default" : "prod",
+            "AllowedValues" : ["gamma", "prod"]
+		}
+	},
+
+	"Resources" : {
+
+
+		"CodePipelineRole":{
+		  "Type":"AWS::IAM::Role",
+		  "Properties":{
+			"AssumeRolePolicyDocument":{
+			  "Statement":[
+				{
+				  "Effect":"Allow",
+				  "Principal":{
+					"Service":[
+					  "codepipeline.amazonaws.com"
+					]
+				  },
+				  "Action":[
+					"sts:AssumeRole"
+				  ]
+				}
+			  ]
+			},
+			"Path":"/",
+			"ManagedPolicyArns" : [
+				"arn:aws:iam::aws:policy/AWSCodeBuildDeveloperAccess",
+				"arn:aws:iam::aws:policy/PowerUserAccess"
+			],
+			"Policies":[
+			  {
+				"PolicyName":"codepipeline-service",
+				"PolicyDocument":{
+				  "Statement":[
+					{
+					  "Action":[
+						"codecommit:GetBranch",
+						"codecommit:GetCommit",
+						"codecommit:UploadArchive",
+						"codecommit:GetUploadArchiveStatus",
+						"codecommit:CancelUploadArchive"
+					  ],
+					  "Resource":"*",
+					  "Effect":"Allow"
+					}
+				  ],
+				  "Version":"2012-10-17"
+				}
+			  }
+			]
+		  }
+		},
+
+        "CodeBuildRole" : {
+            "Type" : "AWS::IAM::Role",
+            "Properties" : {
+                "AssumeRolePolicyDocument" : {
+				  "Statement":[
+					{
+					  "Effect":"Allow",
+					  "Principal":{
+						"Service":[
+						  "codebuild.amazonaws.com"
+						]
+					  },
+					  "Action":[
+						"sts:AssumeRole"
+					  ]
+					}
+				  ]
+                },
+                "ManagedPolicyArns" : [
+					"arn:aws:iam::aws:policy/PowerUserAccess"
+				]
+            }
+        },
+
+
+		"MosaicArtifactStore" : {
+		    "Type" : "AWS::S3::Bucket",
+		    "Properties" : {
+		    }
+		},
+
+		"ParameterMosaicArtifactStore" : {
+            "Type" : "AWS::SSM::Parameter",
+            "Properties" : {
+                "Type" : "String",
+                "Value" : {"Ref" : "MosaicArtifactStore"},
+                "Name" : "/CloudMosaic/MosaicArtifactStore"
+            }
+        },
+
+		"ZipExpanderImageBuild" : {
+		    "Type" : "AWS::CodeBuild::Project",
+		    "Properties" : {
+		        "Artifacts" : {
+					"Type" : "CODEPIPELINE"
+		        },
+		        "Name"      : {"Fn::Join" : [ "", [{ "Ref" : "AWS::StackName" }, "-ZipExpanderImage" ] ]},
+		        "ServiceRole" : { "Ref" : "CodeBuildRole" },
+                "Environment" : {
+					"ComputeType" : "BUILD_GENERAL1_SMALL",
+                    "Type" : "LINUX_CONTAINER",
+                    "Image" : "aws/codebuild/dot-net:core-2.1",
+                    "PrivilegedMode" : true
+				},
+		        "Source"      : {
+		            "BuildSpec" : "Code/CloudMosaic/GalleryGenerator/ZipExpanderConsole/buildspec.yml",
+		            "Type"      : "CODEPIPELINE"
+		        }
+		    }
+		},
+
+		"ProcessRawImageBuild" : {
+		    "Type" : "AWS::CodeBuild::Project",
+		    "Properties" : {
+		        "Artifacts" : {
+					"Type" : "CODEPIPELINE"
+		        },
+		        "Name"      : {"Fn::Join" : [ "", [{ "Ref" : "AWS::StackName" }, "-ProcessRawImage" ] ]},
+		        "ServiceRole" : { "Ref" : "CodeBuildRole" },
+                "Environment" : {
+					"ComputeType" : "BUILD_GENERAL1_SMALL",
+                    "Type" : "LINUX_CONTAINER",
+                    "Image" : "aws/codebuild/dot-net:core-2.1",
+                    "PrivilegedMode" : true
+				},
+		        "Source"      : {
+		            "BuildSpec" : "Code/CloudMosaic/GalleryGenerator/ProcessRawImage/buildspec.yml",
+		            "Type"      : "CODEPIPELINE"
+		        }
+		    }
+		},
+
+        "Pipeline" : {
+            "Type" : "AWS::CodePipeline::Pipeline",
+            "Properties" : {
+                "ArtifactStore" : {
+                    "Location" : { "Ref" : "MosaicArtifactStore" },
+                    "Type"     : "S3"
+                },
+                "RoleArn"       : {"Fn::GetAtt" : [ "CodePipelineRole", "Arn"]},
+                "Stages"        : [
+					{
+						"Name" : "Source",
+                        "Actions" : [
+							{
+								"Name" : "CodeCommit",
+								"ActionTypeId" : {
+									"Category" : "Source",
+                                    "Version" : "1",
+									"Owner":"AWS",
+                                    "Provider" : "CodeCommit"
+								},
+                                "InputArtifacts" : [
+								],
+                                "OutputArtifacts" : [
+									{
+										"Name" : "TheSource"
+									}
+								],
+                                "Configuration" : {
+									"BranchName":"master",
+									"RepositoryName":"reInvent2018"
+								},
+                                "RunOrder" : 1
+							}
+						]
+					},
+					{
+						"Name" : "Build",
+                        "Actions" : [
+							{
+								"Name" : "ZipExpanderImageBuild",
+								"ActionTypeId" : {
+									"Category" : "Build",
+                                    "Provider" : "CodeBuild",
+                                    "Owner" : "AWS",
+                                    "Version" : "1"
+								},
+                                "InputArtifacts" : [
+									{
+										"Name" : "TheSource"
+									}
+								],
+                                "Configuration" : {
+									"ProjectName" : { "Ref" : "ZipExpanderImageBuild" }
+								},
+                                "RunOrder" : 1
+							},
+							{
+								"Name" : "ProcessRawImageBuild",
+								"ActionTypeId" : {
+									"Category" : "Build",
+                                    "Provider" : "CodeBuild",
+                                    "Owner" : "AWS",
+                                    "Version" : "1"
+								},
+                                "InputArtifacts" : [
+									{
+										"Name" : "TheSource"
+									}
+								],
+                                "OutputArtifacts" : [
+									{
+										"Name" : "ProcessRawImageBundle"
+									}
+								],
+								"Configuration" : {
+									"ProjectName" : { "Ref" : "ProcessRawImageBuild" }
+								},
+                                "RunOrder" : 2
+							}
+						]
+					}
+                ]
+            }
+        }
+	},
+
+	"Outputs" : {
+	}
+}

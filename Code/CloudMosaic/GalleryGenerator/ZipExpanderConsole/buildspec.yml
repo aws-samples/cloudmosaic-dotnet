@@ -9,4 +9,5 @@ phases:
       - dotnet tool install -g Amazon.ECS.Tools
   build:
     commands:
+      - cd ./Code/CloudMosaic/GalleryGenerator/ZipExpanderConsole
       - dotnet ecs push-image --tag $DOCKER_TAG

@@ -36,7 +36,7 @@
 			"Path":"/",
 			"ManagedPolicyArns" : [
 				"arn:aws:iam::aws:policy/AWSCodeBuildDeveloperAccess",
-				"arn:aws:iam::aws:policy/PowerUserAccess"
+				"arn:aws:iam::aws:policy/AdministratorAccess"
 			],
 			"Policies":[
 			  {
@@ -85,6 +85,31 @@
 				]
             }
         },
+
+        "CloudFormationRole" : {
+            "Type" : "AWS::IAM::Role",
+            "Properties" : {
+                "AssumeRolePolicyDocument" : {
+				  "Statement":[
+					{
+					  "Effect":"Allow",
+					  "Principal":{
+						"Service":[
+						  "cloudformation.amazonaws.com"
+						]
+					  },
+					  "Action":[
+						"sts:AssumeRole"
+					  ]
+					}
+				  ]
+                },
+                "ManagedPolicyArns" : [
+					"arn:aws:iam::aws:policy/AdministratorAccess"
+				]
+            }
+        },
+
 
 
 		"MosaicArtifactStore" : {
@@ -201,28 +226,10 @@
 						]
 					},
 					{
-						"Name" : "Build",
+						"Name" : "Tile-Gallery-Processor",
                         "Actions" : [
 							{
-								"Name" : "ZipExpanderImageBuild",
-								"ActionTypeId" : {
-									"Category" : "Build",
-                                    "Provider" : "CodeBuild",
-                                    "Owner" : "AWS",
-                                    "Version" : "1"
-								},
-                                "InputArtifacts" : [
-									{
-										"Name" : "TheSource"
-									}
-								],
-                                "Configuration" : {
-									"ProjectName" : { "Ref" : "ZipExpanderImageBuild" }
-								},
-                                "RunOrder" : 1
-							},
-							{
-								"Name" : "ProcessRawImageBuild",
+								"Name" : "Build-ProcessRawImage",
 								"ActionTypeId" : {
 									"Category" : "Build",
                                     "Provider" : "CodeBuild",
@@ -245,7 +252,70 @@
                                 "RunOrder" : 1
 							},
 							{
-								"Name" : "MosaicStepFunctionsBuild",
+								"Name" : "Build-ZipExpanderImage",
+								"ActionTypeId" : {
+									"Category" : "Build",
+                                    "Provider" : "CodeBuild",
+                                    "Owner" : "AWS",
+                                    "Version" : "1"
+								},
+                                "InputArtifacts" : [
+									{
+										"Name" : "TheSource"
+									}
+								],
+                                "Configuration" : {
+									"ProjectName" : { "Ref" : "ZipExpanderImageBuild" }
+								},
+                                "RunOrder" : 1
+							},
+							{
+								"Name" : "CreateChangeSet-ProcessRawImage",
+								"ActionTypeId" : {
+									"Category" : "Deploy",
+                                    "Provider" : "CloudFormation",
+                                    "Owner" : "AWS",
+                                    "Version" : "1"
+								},
+                                "InputArtifacts" : [
+									{
+										"Name" : "ProcessRawImageBundle"
+									}
+								],
+								"Configuration" : {
+									"ActionMode" : "CHANGE_SET_REPLACE",
+									"StackName"  : {"Fn::Join" : [ "", [{ "Ref" : "AWS::StackName" }, "-ProcessRawImage" ] ]},
+									"ChangeSetName" : "ServerlessTransform",
+									"Capabilities" : "CAPABILITY_IAM",
+									"RoleArn" : {"Fn::GetAtt" : [ "CloudFormationRole", "Arn"]},
+									"TemplatePath" : "ProcessRawImageBundle::updated.template"
+								},
+                                "RunOrder" : 2
+							},
+							{
+								"Name" : "ExecuteChangeSet-ProcessRawImage",
+								"ActionTypeId" : {
+									"Category" : "Deploy",
+                                    "Provider" : "CloudFormation",
+                                    "Owner" : "AWS",
+                                    "Version" : "1"
+								},
+								"Configuration" : {
+									"ActionMode" : "CHANGE_SET_EXECUTE",
+									"StackName"  : {"Fn::Join" : [ "", [{ "Ref" : "AWS::StackName" }, "-ProcessRawImage" ] ]},
+									"ChangeSetName" : "ServerlessTransform",
+									"Capabilities" : "CAPABILITY_IAM",
+									"RoleArn" : {"Fn::GetAtt" : [ "CloudFormationRole", "Arn"]}
+								},
+                                "RunOrder" : 3
+							}
+						]
+					},
+					{
+						"Name" : "Mosaic-Render-Step-Function",
+                        "Actions" : [
+							{
+								"Name" : "Build-MosaicStepFunctions",
 								"ActionTypeId" : {
 									"Category" : "Build",
                                     "Provider" : "CodeBuild",
@@ -266,6 +336,46 @@
 									"ProjectName" : { "Ref" : "MosaicStepFunctionsBuild" }
 								},
                                 "RunOrder" : 1
+							},
+							{
+								"Name" : "CreateChangeSet-MosaicStepFunctions",
+								"ActionTypeId" : {
+									"Category" : "Deploy",
+                                    "Provider" : "CloudFormation",
+                                    "Owner" : "AWS",
+                                    "Version" : "1"
+								},
+                                "InputArtifacts" : [
+									{
+										"Name" : "MosaicStepFunctionsBundle"
+									}
+								],
+								"Configuration" : {
+									"ActionMode" : "CHANGE_SET_REPLACE",
+									"StackName"  : {"Fn::Join" : [ "", [{ "Ref" : "AWS::StackName" }, "-MosaicStepFunctions" ] ]},
+									"ChangeSetName" : "ServerlessTransform",
+									"Capabilities" : "CAPABILITY_IAM",
+									"RoleArn" : {"Fn::GetAtt" : [ "CloudFormationRole", "Arn"]},
+									"TemplatePath" : "MosaicStepFunctionsBundle::updated.template"
+								},
+                                "RunOrder" : 2
+							},
+							{
+								"Name" : "ExecuteChangeSet-MosaicStepFunctions",
+								"ActionTypeId" : {
+									"Category" : "Deploy",
+                                    "Provider" : "CloudFormation",
+                                    "Owner" : "AWS",
+                                    "Version" : "1"
+								},
+								"Configuration" : {
+									"ActionMode" : "CHANGE_SET_EXECUTE",
+									"StackName"  : {"Fn::Join" : [ "", [{ "Ref" : "AWS::StackName" }, "-MosaicStepFunctions" ] ]},
+									"ChangeSetName" : "ServerlessTransform",
+									"Capabilities" : "CAPABILITY_IAM",
+									"RoleArn" : {"Fn::GetAtt" : [ "CloudFormationRole", "Arn"]}
+								},
+                                "RunOrder" : 3
 							}
 						]
 					}

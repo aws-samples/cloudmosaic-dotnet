@@ -346,6 +346,15 @@
                 "Value" : {"Fn::Join" : [ "", [{ "Ref" : "AWS::AccountId" }, ".dkr.ecr.", { "Ref" : "AWS::Region" }, ".amazonaws.com/", { "Ref" : "ZipExpanderConsoleRepository" }, ":", { "Ref" : "Stage" } ] ]},
                 "Name" : {"Fn::Join" : [ "", ["/CloudMosaic/", { "Ref" : "Stage" }, "/ZipExpanderConsoleRepository" ] ]}
             }
+        },
+
+		"ParameterZipExpanderConsoleTag" : {
+            "Type" : "AWS::SSM::Parameter",
+            "Properties" : {
+                "Type" : "String",
+                "Value" : {"Fn::Join" : [ "", [{ "Ref" : "ZipExpanderConsoleRepository" }, ":", { "Ref" : "Stage" } ] ]},
+                "Name" : {"Fn::Join" : [ "", ["/CloudMosaic/", { "Ref" : "Stage" }, "/ZipExpanderConsoleTag" ] ]}
+            }
         }
 	},
 

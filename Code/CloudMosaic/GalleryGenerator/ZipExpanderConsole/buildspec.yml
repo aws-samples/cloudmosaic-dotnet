@@ -1,0 +1,12 @@
+version: 0.2
+
+env:
+    parameter-store:
+        DOCKER_TAG: "/CloudMosaic/prod/ZipExpanderConsoleTag"
+phases:
+  install:
+    commands:
+      - dotnet tool install -g Amazon.Lambda.ECS
+  build:
+    commands:
+      - dotnet ecs push-image --tag $DOCKER_TAG

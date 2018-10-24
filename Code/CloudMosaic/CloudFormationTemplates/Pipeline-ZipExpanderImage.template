@@ -111,7 +111,7 @@
 		        "Name"      : {"Fn::Join" : [ "", [{ "Ref" : "AWS::StackName" }, "-ZipExpanderImage" ] ]},
 		        "ServiceRole" : { "Ref" : "CodeBuildRole" },
                 "Environment" : {
-					"ComputeType" : "BUILD_GENERAL1_SMALL",
+					"ComputeType" : "BUILD_GENERAL1_MEDIUM",
                     "Type" : "LINUX_CONTAINER",
                     "Image" : "aws/codebuild/dot-net:core-2.1",
                     "PrivilegedMode" : true
@@ -139,6 +139,27 @@
 				},
 		        "Source"      : {
 		            "BuildSpec" : "Code/CloudMosaic/GalleryGenerator/ProcessRawImage/buildspec.yml",
+		            "Type"      : "CODEPIPELINE"
+		        }
+		    }
+		},
+
+		"MosaicStepFunctionsBuild" : {
+		    "Type" : "AWS::CodeBuild::Project",
+		    "Properties" : {
+		        "Artifacts" : {
+					"Type" : "CODEPIPELINE"
+		        },
+		        "Name"      : {"Fn::Join" : [ "", [{ "Ref" : "AWS::StackName" }, "-MosaicStepFunctions" ] ]},
+		        "ServiceRole" : { "Ref" : "CodeBuildRole" },
+                "Environment" : {
+					"ComputeType" : "BUILD_GENERAL1_SMALL",
+                    "Type" : "LINUX_CONTAINER",
+                    "Image" : "aws/codebuild/dot-net:core-2.1",
+                    "PrivilegedMode" : true
+				},
+		        "Source"      : {
+		            "BuildSpec" : "Code/CloudMosaic/MosaicStepFunctions/buildspec.yml",
 		            "Type"      : "CODEPIPELINE"
 		        }
 		    }
@@ -221,7 +242,30 @@
 								"Configuration" : {
 									"ProjectName" : { "Ref" : "ProcessRawImageBuild" }
 								},
-                                "RunOrder" : 2
+                                "RunOrder" : 1
+							},
+							{
+								"Name" : "MosaicStepFunctionsBuild",
+								"ActionTypeId" : {
+									"Category" : "Build",
+                                    "Provider" : "CodeBuild",
+                                    "Owner" : "AWS",
+                                    "Version" : "1"
+								},
+                                "InputArtifacts" : [
+									{
+										"Name" : "TheSource"
+									}
+								],
+                                "OutputArtifacts" : [
+									{
+										"Name" : "MosaicStepFunctionsBundle"
+									}
+								],
+								"Configuration" : {
+									"ProjectName" : { "Ref" : "MosaicStepFunctionsBuild" }
+								},
+                                "RunOrder" : 1
 							}
 						]
 					}

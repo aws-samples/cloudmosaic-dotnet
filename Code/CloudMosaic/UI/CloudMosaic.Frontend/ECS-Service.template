@@ -60,7 +60,7 @@
                 "ContainerDefinitions" : [
 					{
 						"Name" : "CloudMosaicFrontend",                        
-						"Image" : {"Fn::Join" : [ "", [{ "Ref" : "AWS::AccountId" }, ".dkr.ecr.", { "Ref" : "AWS::Region" }, ".amazonaws.com/", { "Ref" : "FrontendTag" }, ":", { "Ref" : "Stage" } ] ]},
+						"Image" : {"Fn::Join" : [ "", [{ "Ref" : "AWS::AccountId" }, ".dkr.ecr.", { "Ref" : "AWS::Region" }, ".amazonaws.com/", { "Ref" : "FrontendTag" }] ]},
 						"PortMappings" : [
 							{
 								"Protocol" : "tcp",

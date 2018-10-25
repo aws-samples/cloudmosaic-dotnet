@@ -334,7 +334,7 @@
 				  "Sid" : "",
 				  "Effect" : "Allow",
 				  "Principal" : {
-					"Service" : "ecs.amazonaws.com"
+					"Service" : "ecs-tasks.amazonaws.com"
 				  },
 				  "Action" : "sts:AssumeRole"
 				}
@@ -351,7 +351,15 @@
             "Type" : "AWS::EC2::SecurityGroup",
             "Properties" : {
 				"VpcId" : { "Ref" : "MosaicVpc" },
-                "GroupDescription" : "Security Group for the Batch compute environment"
+                "GroupDescription" : "Security Group for the ECS Service",
+                "SecurityGroupIngress" : [
+					{
+						"CidrIp" : "0.0.0.0/0",
+                        "FromPort" : "80",
+                        "ToPort" : "80",
+                        "IpProtocol" : "tcp"
+					}
+				]
             }
         },
 
@@ -411,7 +419,7 @@
                 "Cluster" : { "Ref" : "FrontendCluster" },
                 "LaunchType" : "FARGATE",
                 "ServiceName" : "Frontend",
-                "DesiredCount" : 0,
+                "DesiredCount" : 1,
                 "NetworkConfiguration" : {
 					"AwsvpcConfiguration" : {
 						"AssignPublicIp" : "ENABLED",
@@ -496,6 +504,15 @@
                 "Type" : "String",
                 "Value" : {"Fn::Join" : [ "", [{ "Ref" : "ZipExpanderConsoleRepository" }, ":", { "Ref" : "Stage" } ] ]},
                 "Name" : {"Fn::Join" : [ "", ["/CloudMosaic/", { "Ref" : "Stage" }, "/ZipExpanderConsoleTag" ] ]}
+            }
+        },
+
+		"ParameterFrontendCluster" : {
+            "Type" : "AWS::SSM::Parameter",
+            "Properties" : {
+                "Type" : "String",
+                "Value" : {"Ref": "FrontendCluster"},
+                "Name" : {"Fn::Join" : [ "", ["/CloudMosaic/", { "Ref" : "Stage" }, "/FrontendCluster" ] ]}
             }
         },
 

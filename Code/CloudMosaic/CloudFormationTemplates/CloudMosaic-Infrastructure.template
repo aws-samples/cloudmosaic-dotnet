@@ -22,7 +22,6 @@
 		    }
 		},
 
-
 		"TableGallery" : {
 		    "Type" : "AWS::DynamoDB::Table",
 		    "Properties" : {

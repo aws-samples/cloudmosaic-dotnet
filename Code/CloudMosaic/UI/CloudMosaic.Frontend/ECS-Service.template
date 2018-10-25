@@ -124,7 +124,6 @@
 				},
                 "LoadBalancers" : [
 					{
-						"LoadBalancerName" : { "Ref" : "LoadBalancerName" },
                         "TargetGroupArn" : { "Ref" : "TargetGroupArn" },
                         "ContainerPort" : 80,
                         "ContainerName" : "CloudMosaicFrontend"

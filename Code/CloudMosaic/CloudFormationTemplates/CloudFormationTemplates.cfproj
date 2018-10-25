@@ -17,7 +17,7 @@
     <Compile Include="CloudMosaic-Infrastructure.template">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Pipeline-ZipExpanderImage.template">
+    <Compile Include="CloudMosaic-Pipeline.template">
       <SubType>Code</SubType>
     </Compile>
   </ItemGroup>

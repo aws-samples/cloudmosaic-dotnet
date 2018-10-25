@@ -401,7 +401,8 @@
                 ],
                 "Targets"               : [
                 ],
-                "VpcId"                 : { "Ref" : "MosaicVpc" }
+                "VpcId"                 : { "Ref" : "MosaicVpc" },
+                "TargetType" : "ip"
             }
         },
 

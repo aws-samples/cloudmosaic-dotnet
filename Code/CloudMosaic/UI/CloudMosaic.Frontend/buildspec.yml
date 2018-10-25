@@ -1,0 +1,19 @@
+version: 0.2
+
+env:
+    parameter-store:
+        DOCKER_TAG: "/CloudMosaic/prod/FrontendTag"
+        DOCKER_REPO: "/CloudMosaic/prod/FrontendRepository"
+phases:
+  install:
+    commands:
+      - dotnet tool install -g Amazon.ECS.Tools
+  build:
+    commands:
+      - cd ./Code/CloudMosaic/UI/CloudMosaic.Frontend
+      - dotnet ecs push-image --tag $DOCKER_TAG
+  post_build:
+    commands:
+      - printf '[{"name":"CloudMosaicFrontend","imageUri":"%s"}]' $DOCKER_REPO > imagedefinitions.json
+artifacts:
+    files: imagedefinitions.json

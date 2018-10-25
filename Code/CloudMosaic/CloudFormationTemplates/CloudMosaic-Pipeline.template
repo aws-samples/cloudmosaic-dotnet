@@ -195,6 +195,27 @@
 		    }
 		},
 
+		"FrontendBuild" : {
+		    "Type" : "AWS::CodeBuild::Project",
+		    "Properties" : {
+		        "Artifacts" : {
+					"Type" : "CODEPIPELINE"
+		        },
+		        "Name"      : {"Fn::Join" : [ "", [{ "Ref" : "AWS::StackName" }, "-Frontend" ] ]},
+		        "ServiceRole" : { "Ref" : "CodeBuildRole" },
+                "Environment" : {
+					"ComputeType" : "BUILD_GENERAL1_MEDIUM",
+                    "Type" : "LINUX_CONTAINER",
+                    "Image" : "aws/codebuild/dot-net:core-2.1",
+                    "PrivilegedMode" : true
+				},
+		        "Source"      : {
+		            "BuildSpec" : "Code/CloudMosaic/UI/CloudMosaic.Frontend/buildspec.yml",
+		            "Type"      : "CODEPIPELINE"
+		        }
+		    }
+		},
+
         "Pipeline" : {
             "Type" : "AWS::CodePipeline::Pipeline",
             "Properties" : {
@@ -381,6 +402,29 @@
 									"RoleArn" : {"Fn::GetAtt" : [ "CloudFormationRole", "Arn"]}
 								},
                                 "RunOrder" : 3
+							}
+						]
+					},
+					{
+						"Name" : "CloudMosaic-Frontend",
+                        "Actions" : [
+							{
+								"Name" : "Build-Frontend",
+								"ActionTypeId" : {
+									"Category" : "Build",
+                                    "Provider" : "CodeBuild",
+                                    "Owner" : "AWS",
+                                    "Version" : "1"
+								},
+                                "InputArtifacts" : [
+									{
+										"Name" : "TheSource"
+									}
+								],
+                                "Configuration" : {
+									"ProjectName" : { "Ref" : "FrontendBuild" }
+								},
+                                "RunOrder" : 1
 							}
 						]
 					}

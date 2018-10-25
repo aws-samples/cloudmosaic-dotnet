@@ -7,8 +7,8 @@ FROM microsoft/dotnet:2.1-sdk AS build
 WORKDIR /src
 COPY ["UI/CloudMosaic.Frontend/CloudMosaic.Frontend.csproj", "UI/CloudMosaic.Frontend/"]
 COPY ["CloudMosaic.Common/CloudMosaic.Common.csproj", "CloudMosaic.Common/"]
-COPY ["nuget.config", "."]
-COPY ["NuGetCache/AWSSDK.Extensions.Configuration.SystemsManager.1.0.0.nupkg", "NuGetCache"]
+COPY ["nuget.config", "./"]
+COPY ["NuGetCache/AWSSDK.Extensions.Configuration.SystemsManager.1.0.0.nupkg", "NuGetCache/"]
 RUN dotnet restore "UI/CloudMosaic.Frontend/CloudMosaic.Frontend.csproj"
 COPY . .
 WORKDIR "/src/UI/CloudMosaic.Frontend"

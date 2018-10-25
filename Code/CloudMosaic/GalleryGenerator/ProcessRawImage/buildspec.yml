@@ -2,7 +2,7 @@ version: 0.2
 
 env:
     parameter-store:
-        S3_BUCKET: "/CloudMosaic/prod/AppOptions/MosaicArtifactStore"
+        S3_BUCKET: "/CloudMosaic/prod/AppOptions/MosaicStorageBucket"
 phases:
   install:
     commands:

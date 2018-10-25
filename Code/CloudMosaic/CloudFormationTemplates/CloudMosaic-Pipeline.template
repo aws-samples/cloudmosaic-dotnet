@@ -300,7 +300,7 @@
 									"StackName"  : {"Fn::Join" : [ "", [{ "Ref" : "AWS::StackName" }, "-ECSFrontendService" ] ]},
 									"Capabilities" : "CAPABILITY_IAM",
 									"RoleArn" : {"Fn::GetAtt" : [ "CloudFormationRole", "Arn"]},
-									"TemplatePath" : "TheSource::./CloudMosaic/UI/CloudMosaic.Frontend/ECS-Service.template"
+									"TemplatePath" : "TheSource::./Code/CloudMosaic/UI/CloudMosaic.Frontend/ECS-Service.template"
 								},
                                 "RunOrder" : 2
 							},

@@ -41,6 +41,14 @@
         "SubnetC" : {
             "Type" : "AWS::SSM::Parameter::Value<String>",
             "Default" : "/CloudMosaic/prod/SubnetC"
+        },
+        "LoadBalancerName" : {
+            "Type" : "AWS::SSM::Parameter::Value<String>",
+            "Default" : "/CloudMosaic/prod/LoadBalancerName"
+        },
+        "TargetGroupArn" : {
+            "Type" : "AWS::SSM::Parameter::Value<String>",
+            "Default" : "/CloudMosaic/prod/TargetGroupArn"
         }
 	},
 
@@ -102,7 +110,7 @@
                 "Cluster" : { "Ref" : "FrontendCluster" },
                 "LaunchType" : "FARGATE",
                 "ServiceName" : "Frontend",
-                "DesiredCount" : 1,
+                "DesiredCount" : 2,
                 "NetworkConfiguration" : {
 					"AwsvpcConfiguration" : {
 						"AssignPublicIp" : "ENABLED",
@@ -113,7 +121,15 @@
                 "DeploymentConfiguration" : {
 					"MaximumPercent" : 200,
                     "MinimumHealthyPercent" : 50
-				}
+				},
+                "LoadBalancers" : [
+					{
+						"LoadBalancerName" : { "Ref" : "LoadBalancerName" },
+                        "TargetGroupArn" : { "Ref" : "TargetGroupArn" },
+                        "ContainerPort" : 80,
+                        "ContainerName" : "CloudMosaicFrontend"
+					}
+				]
             }
         }
 	},

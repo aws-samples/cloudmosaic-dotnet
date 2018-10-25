@@ -105,7 +105,8 @@
             "Properties" : {
                 "CidrBlock" : "10.0.0.0/24",
                 "VpcId"     : { "Ref" : "MosaicVpc" },
-				"MapPublicIpOnLaunch" : "True"
+				"MapPublicIpOnLaunch" : "True",
+                "AvailabilityZone" : {"Fn::Select" : [ "0", { "Fn::GetAZs" : "" } ]}
             }
         },
 
@@ -114,7 +115,8 @@
             "Properties" : {
                 "CidrBlock" : "10.0.1.0/24",
                 "VpcId"     : { "Ref" : "MosaicVpc" },
-				"MapPublicIpOnLaunch" : "True"
+				"MapPublicIpOnLaunch" : "True",
+                "AvailabilityZone" : {"Fn::Select" : [ "1", { "Fn::GetAZs" : "" } ]}
             }
         },
 
@@ -123,7 +125,8 @@
             "Properties" : {
                 "CidrBlock" : "10.0.2.0/24",
                 "VpcId"     : { "Ref" : "MosaicVpc" },
-				"MapPublicIpOnLaunch" : "True"
+				"MapPublicIpOnLaunch" : "True",
+                "AvailabilityZone" : {"Fn::Select" : [ "2", { "Fn::GetAZs" : "" } ]}
             }
         },
 
@@ -363,6 +366,45 @@
             }
         },
 
+        "LoadBalancer" : {
+            "Type" : "AWS::ElasticLoadBalancingV2::LoadBalancer",
+            "Properties" : {
+				"Type" : "application",
+                "IpAddressType" : "ipv4",
+                "Scheme" : "internet-facing",
+                "SecurityGroups" : [{ "Ref" : "ECSSecurityGroup" }],
+                "Subnets" : [{ "Ref" : "SubnetA" },{ "Ref" : "SubnetB" },{ "Ref" : "SubnetC" }]
+            }
+        },
+
+        "HttpListner" : {
+            "Type" : "AWS::ElasticLoadBalancingV2::Listener",
+            "Properties" : {
+                "DefaultActions" : [
+					{
+						"TargetGroupArn" : { "Ref" : "DefaultTargetGroup" },
+						"Type"           : "forward"
+					}
+                ],
+                "LoadBalancerArn" : { "Ref" : "LoadBalancer" },
+                "Port"            : "80",
+                "Protocol"        : "HTTP"
+            }
+        },
+
+        "DefaultTargetGroup" : {
+            "Type" : "AWS::ElasticLoadBalancingV2::TargetGroup",
+            "Properties" : {
+                "Port" : "80",
+                "Protocol" : "HTTP",
+                "TargetGroupAttributes" : [
+                ],
+                "Targets"               : [
+                ],
+                "VpcId"                 : { "Ref" : "MosaicVpc" }
+            }
+        },
+
 		"ParameterMosaicStorageBucket" : {
             "Type" : "AWS::SSM::Parameter",
             "Properties" : {
@@ -513,6 +555,24 @@
                 "Type" : "String",
                 "Value" : { "Ref" : "FrontendTaskRole" },
                 "Name" : {"Fn::Join" : [ "", ["/CloudMosaic/", { "Ref" : "Stage" }, "/FrontendTaskRole" ] ]}
+            }
+        },
+
+		"ParameterLoadBalancerName" : {
+            "Type" : "AWS::SSM::Parameter",
+            "Properties" : {
+                "Type" : "String",
+                "Value" : { "Ref" : "LoadBalancer" },
+                "Name" : {"Fn::Join" : [ "", ["/CloudMosaic/", { "Ref" : "Stage" }, "/LoadBalancerName" ] ]}
+            }
+        },
+
+		"ParameterTargetGroupArn" : {
+            "Type" : "AWS::SSM::Parameter",
+            "Properties" : {
+                "Type" : "String",
+                "Value" : { "Ref" : "DefaultTargetGroup" },
+                "Name" : {"Fn::Join" : [ "", ["/CloudMosaic/", { "Ref" : "Stage" }, "/TargetGroupArn" ] ]}
             }
         }
 	},

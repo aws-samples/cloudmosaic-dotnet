@@ -163,8 +163,16 @@
                 }
             }]
         }
-    }
+    },
 
+    "ParameterStateMachineArn" : {
+        "Type" : "AWS::SSM::Parameter",
+        "Properties" : {
+            "Type" : "String",
+            "Value" : { "Ref" : "StateMachine" },
+            "Name" : {"Fn::Join" : [ "", ["/CloudMosaic/", { "Ref" : "Stage" }, "/AppOptions/StateMachineArn" ] ]}
+        }
+    }
   },
 
   "Outputs" : {

@@ -16,6 +16,6 @@ phases:
     commands:
       - printf '[{"name":"CloudMosaicFrontend","imageUri":"%s"}]' $DOCKER_REPO > imagedefinitions.json
 artifacts:
-    files:
-      - ./Code/CloudMosaic/UI/CloudMosaic.Frontend/imagedefinitions.json
+  files:
+    - ./Code/CloudMosaic/UI/CloudMosaic.Frontend/imagedefinitions.json
   discard-paths: yes

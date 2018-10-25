@@ -9,7 +9,12 @@
 		    "Type" : "String",
             "Default" : "prod",
             "AllowedValues" : ["gamma", "prod"]
-		}
+		},
+        "Repository" : {
+            "Type" : "String",
+            "Default" : "reInvent2018",
+            "Description" : "The source repository containing CloudMosaic"
+        }
 	},
 
 	"Resources" : {

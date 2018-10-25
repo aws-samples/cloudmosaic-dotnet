@@ -86,7 +86,13 @@
 				
             }
         },
-
+		
+        "FrontendRepository" : {
+            "Type" : "AWS::ECR::Repository",
+            "Properties" : {
+				
+            }
+        },
 
 		"MosaicVpc" : {
 		    "Type" : "AWS::EC2::VPC",
@@ -136,6 +142,7 @@
 
 		  }
 		},
+		
 		"VPCGatewayAttachment" : {
 		  "Type" : "AWS::EC2::VPCGatewayAttachment",
 		  "Properties" : {
@@ -143,6 +150,7 @@
 			"InternetGatewayId" : { "Ref" : "InternetGateway" }
 		  }
 		},
+		
 		"RouteTable" : {
 		  "Type" : "AWS::EC2::RouteTable",
 		  "Properties" : {
@@ -284,6 +292,140 @@
             }
         },
 
+        "FrontendLogGroup" : {
+            "Type" : "AWS::Logs::LogGroup",
+            "Properties" : {
+				"LogGroupName" : {"Fn::Join" : [ "", ["/ecs/", {"Fn::Join" : [ "", [{ "Ref" : "AWS::StackName" }, "-CloudMosaicFrontend" ] ]}, "CloudMosaicFrontend"]]}
+            }
+        },
+
+		"FrontendTaskRole" : {
+		  "Type" : "AWS::IAM::Role",
+		  "Properties" : {
+			"AssumeRolePolicyDocument" : {
+			  "Version" : "2008-10-17",
+			  "Statement" : [
+				{
+				  "Sid" : "",
+				  "Effect" : "Allow",
+				  "Principal" : {
+					"Service" : "ecs-tasks.amazonaws.com"
+				  },
+				  "Action" : "sts:AssumeRole"
+				}
+			  ]
+			},
+			"ManagedPolicyArns" : [
+			  "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role",
+				"arn:aws:iam::aws:policy/AmazonS3FullAccess",
+				"arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess",
+				"arn:aws:iam::aws:policy/AWSBatchFullAccess"
+			]
+		  }
+		},
+
+		"FrontendExecutionRole" : {
+		  "Type" : "AWS::IAM::Role",
+		  "Properties" : {
+			"AssumeRolePolicyDocument" : {
+			  "Version" : "2008-10-17",
+			  "Statement" : [
+				{
+				  "Sid" : "",
+				  "Effect" : "Allow",
+				  "Principal" : {
+					"Service" : "ecs.amazonaws.com"
+				  },
+				  "Action" : "sts:AssumeRole"
+				}
+			  ]
+			},
+			"ManagedPolicyArns" : [
+			  "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly",
+			  "arn:aws:iam::aws:policy/CloudWatchLogsFullAccess"
+			]
+		  }
+		},
+
+        "ECSSecurityGroup" : {
+            "Type" : "AWS::EC2::SecurityGroup",
+            "Properties" : {
+				"VpcId" : { "Ref" : "MosaicVpc" },
+                "GroupDescription" : "Security Group for the Batch compute environment"
+            }
+        },
+
+        "FrontendCluster" : {
+            "Type" : "AWS::ECS::Cluster",
+            "Properties" : {
+				"ClusterName" : {"Fn::Join" : [ "", [{ "Ref" : "AWS::StackName" }, "-", { "Ref" : "Stage" }, "-CloudMosaicFrontend"  ] ]}
+            }
+        },
+
+        "FrontendTaskDefinition" : {
+            "Type" : "AWS::ECS::TaskDefinition",
+            "Properties" : {
+				"Family" : {"Fn::Join" : [ "", [{ "Ref" : "AWS::StackName" }, "-CloudMosaicFrontend" ] ]},
+                "ContainerDefinitions" : [
+					{
+						"Name" : "CloudMosaicFrontend",                        
+						"Image" : {"Fn::Join" : [ "", [{ "Ref" : "AWS::AccountId" }, ".dkr.ecr.", { "Ref" : "AWS::Region" }, ".amazonaws.com/", { "Ref" : "FrontendRepository" }, ":", { "Ref" : "Stage" } ] ]},
+						"PortMappings" : [
+							{
+								"Protocol" : "tcp",
+                                "HostPort" : 80,
+                                "ContainerPort" : 80
+							}
+						],
+                        "LogConfiguration" : {
+							"LogDriver" : "awslogs",
+                            "Options" : {
+								"awslogs-group": { "Ref" : "FrontendLogGroup" }, 
+								"awslogs-region": { "Ref" : "AWS::Region" },
+								"awslogs-stream-prefix": "ecs"
+							}
+						},
+                        "Environment" : [
+							{
+								"Name" : "ASPNETCORE_ENVIRONMENT",
+                                "Value" : "Production"
+							}
+						]
+					}
+                ],
+                "RequiresCompatibilities" : ["FARGATE","EC2"],
+				"Cpu" : "2048",
+                "Memory" : "4GB",
+                "NetworkMode" : "awsvpc",
+                "ExecutionRoleArn" : { "Ref" : "FrontendExecutionRole" },
+                "TaskRoleArn" : { "Ref" : "FrontendTaskRole" },
+                "Volumes" : [
+                ]
+            }
+        },
+
+        "FrontendService" : {
+            "Type" : "AWS::ECS::Service",
+            "Properties" : {
+                "TaskDefinition" : { "Ref" : "FrontendTaskDefinition" },
+                "Cluster" : { "Ref" : "FrontendCluster" },
+                "LaunchType" : "FARGATE",
+                "ServiceName" : "Frontend",
+                "DesiredCount" : 0,
+                "NetworkConfiguration" : {
+					"AwsvpcConfiguration" : {
+						"AssignPublicIp" : "ENABLED",
+                        "SecurityGroups" : [{"Ref" : "ECSSecurityGroup"}],
+                        "Subnets" : [{ "Ref" : "SubnetA" }, { "Ref" : "SubnetB" }, { "Ref" : "SubnetC" }]
+					}
+				},
+                "DeploymentConfiguration" : {
+					"MaximumPercent" : 200,
+                    "MinimumHealthyPercent" : 50
+				}
+            }
+        },
+
 
 		"ParameterMosaicStorageBucket" : {
             "Type" : "AWS::SSM::Parameter",
@@ -354,6 +496,24 @@
                 "Type" : "String",
                 "Value" : {"Fn::Join" : [ "", [{ "Ref" : "ZipExpanderConsoleRepository" }, ":", { "Ref" : "Stage" } ] ]},
                 "Name" : {"Fn::Join" : [ "", ["/CloudMosaic/", { "Ref" : "Stage" }, "/ZipExpanderConsoleTag" ] ]}
+            }
+        },
+
+		"ParameterFrontendRepository" : {
+            "Type" : "AWS::SSM::Parameter",
+            "Properties" : {
+                "Type" : "String",
+                "Value" : {"Fn::Join" : [ "", [{ "Ref" : "AWS::AccountId" }, ".dkr.ecr.", { "Ref" : "AWS::Region" }, ".amazonaws.com/", { "Ref" : "FrontendRepository" }, ":", { "Ref" : "Stage" } ] ]},
+                "Name" : {"Fn::Join" : [ "", ["/CloudMosaic/", { "Ref" : "Stage" }, "/FrontendRepository" ] ]}
+            }
+        },
+
+		"ParameterFrontendTag" : {
+            "Type" : "AWS::SSM::Parameter",
+            "Properties" : {
+                "Type" : "String",
+                "Value" : {"Fn::Join" : [ "", [{ "Ref" : "FrontendRepository" }, ":", { "Ref" : "Stage" } ] ]},
+                "Name" : {"Fn::Join" : [ "", ["/CloudMosaic/", { "Ref" : "Stage" }, "/FrontendTag" ] ]}
             }
         }
 	},

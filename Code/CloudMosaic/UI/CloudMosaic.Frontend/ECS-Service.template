@@ -1,0 +1,124 @@
+{
+	"AWSTemplateFormatVersion" : "2010-09-09",
+
+	"Description" : "",
+
+	"Parameters" : {
+
+		"Stage" : {
+		    "Type" : "String",
+            "Default" : "prod",
+            "AllowedValues" : ["gamma", "prod"]
+		},
+        "FrontendCluster" : {
+            "Type" : "AWS::SSM::Parameter::Value<String>",
+            "Default" : "/CloudMosaic/prod/FrontendCluster"
+        },
+        "FrontendExecutionRole" : {
+            "Type" : "AWS::SSM::Parameter::Value<String>",
+            "Default" : "/CloudMosaic/prod/FrontendExecutionRole"
+        },
+        "FrontendTaskRole" : {
+            "Type" : "AWS::SSM::Parameter::Value<String>",
+            "Default" : "/CloudMosaic/prod/FrontendTaskRole"
+        },
+        "FrontendTag" : {
+            "Type" : "AWS::SSM::Parameter::Value<String>",
+            "Default" : "/CloudMosaic/prod/FrontendTag"
+        },
+		"ECSSecurityGroup" : {
+            "Type" : "AWS::SSM::Parameter::Value<String>",
+            "Default" : "/CloudMosaic/prod/ECSSecurityGroup"
+        },
+        "SubnetA" : {
+            "Type" : "AWS::SSM::Parameter::Value<String>",
+            "Default" : "/CloudMosaic/prod/SubnetA"
+        },
+        "SubnetB" : {
+            "Type" : "AWS::SSM::Parameter::Value<String>",
+            "Default" : "/CloudMosaic/prod/SubnetB"
+        },
+        "SubnetC" : {
+            "Type" : "AWS::SSM::Parameter::Value<String>",
+            "Default" : "/CloudMosaic/prod/SubnetC"
+        }
+	},
+
+	"Resources" : {
+
+        "FrontendLogGroup" : {
+            "Type" : "AWS::Logs::LogGroup",
+            "Properties" : {
+				"LogGroupName" : {"Fn::Join" : [ "", ["/ecs/", {"Fn::Join" : [ "", [{ "Ref" : "AWS::StackName" }, "-CloudMosaicFrontend" ] ]}, "CloudMosaicFrontend"]]}
+            }
+        },
+
+        "FrontendTaskDefinition" : {
+            "Type" : "AWS::ECS::TaskDefinition",
+            "Properties" : {
+				"Family" : {"Fn::Join" : [ "", [{ "Ref" : "AWS::StackName" }, "-CloudMosaicFrontend" ] ]},
+                "ContainerDefinitions" : [
+					{
+						"Name" : "CloudMosaicFrontend",                        
+						"Image" : {"Fn::Join" : [ "", [{ "Ref" : "AWS::AccountId" }, ".dkr.ecr.", { "Ref" : "AWS::Region" }, ".amazonaws.com/", { "Ref" : "FrontendTag" }, ":", { "Ref" : "Stage" } ] ]},
+						"PortMappings" : [
+							{
+								"Protocol" : "tcp",
+                                "HostPort" : 80,
+                                "ContainerPort" : 80
+							}
+						],
+                        "LogConfiguration" : {
+							"LogDriver" : "awslogs",
+                            "Options" : {
+								"awslogs-group": { "Ref" : "FrontendLogGroup" }, 
+								"awslogs-region": { "Ref" : "AWS::Region" },
+								"awslogs-stream-prefix": "ecs"
+							}
+						},
+                        "Environment" : [
+							{
+								"Name" : "ASPNETCORE_ENVIRONMENT",
+                                "Value" : "Production"
+							}
+						]
+					}
+                ],
+                "RequiresCompatibilities" : ["FARGATE","EC2"],
+				"Cpu" : "2048",
+                "Memory" : "4GB",
+                "NetworkMode" : "awsvpc",
+                "ExecutionRoleArn" : { "Ref" : "FrontendExecutionRole" },
+                "TaskRoleArn" : { "Ref" : "FrontendTaskRole" },
+                "Volumes" : [
+                ]
+            }
+        },
+
+        "FrontendService" : {
+            "Type" : "AWS::ECS::Service",
+            "Properties" : {
+                "TaskDefinition" : { "Ref" : "FrontendTaskDefinition" },
+                "Cluster" : { "Ref" : "FrontendCluster" },
+                "LaunchType" : "FARGATE",
+                "ServiceName" : "Frontend",
+                "DesiredCount" : 1,
+                "NetworkConfiguration" : {
+					"AwsvpcConfiguration" : {
+						"AssignPublicIp" : "ENABLED",
+                        "SecurityGroups" : [{"Ref" : "ECSSecurityGroup"}],
+                        "Subnets" : [{ "Ref" : "SubnetA" }, { "Ref" : "SubnetB" }, { "Ref" : "SubnetC" }]
+					}
+				},
+                "DeploymentConfiguration" : {
+					"MaximumPercent" : 200,
+                    "MinimumHealthyPercent" : 50
+				}
+            }
+        }
+	},
+
+	"Outputs" : {
+
+	}
+}

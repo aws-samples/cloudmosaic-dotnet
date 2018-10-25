@@ -283,6 +283,28 @@
                                 "RunOrder" : 1
 							},
 							{
+								"Name" : "Create-ECSService",
+								"ActionTypeId" : {
+									"Category" : "Deploy",
+                                    "Provider" : "CloudFormation",
+                                    "Owner" : "AWS",
+                                    "Version" : "1"
+								},
+                                "InputArtifacts" : [
+									{
+										"Name" : "TheSource"
+									}
+								],
+								"Configuration" : {
+									"ActionMode" : "CREATE_UPDATE",
+									"StackName"  : {"Fn::Join" : [ "", [{ "Ref" : "AWS::StackName" }, "-ECSFrontendService" ] ]},
+									"Capabilities" : "CAPABILITY_IAM",
+									"RoleArn" : {"Fn::GetAtt" : [ "CloudFormationRole", "Arn"]},
+									"TemplatePath" : "TheSource::./CloudMosaic/UI/CloudMosaic.Frontend/ECS-Service.template"
+								},
+                                "RunOrder" : 2
+							},
+							{
 								"Name" : "Deploy-Frontend",
                                 "ActionTypeId" : {
 									"Category" : "Deploy",
@@ -300,7 +322,7 @@
 									"ServiceName":  "Frontend",
 									"FileName":  "imagedefinitions.json"
 								},
-								"RunOrder" : 2
+								"RunOrder" : 3
 							}
 						]
 					},

@@ -19,6 +19,10 @@ namespace CloudMosaic.Frontend
 
         public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
             WebHost.CreateDefaultBuilder(args)
+                .ConfigureAppConfiguration(builder =>
+                {
+                    builder.AddSystemsManager("/CloudMosaic/prod");
+                })
                 .UseStartup<Startup>();
     }
 }

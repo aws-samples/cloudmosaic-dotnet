@@ -440,7 +440,7 @@
             "Properties" : {
                 "Type" : "String",
                 "Value" : { "Ref" : "MosaicStorageBucket" },
-                "Name" : {"Fn::Join" : [ "", ["/CloudMosaic/", { "Ref" : "Stage" }, "/MosaicStorageBucket" ] ]}
+                "Name" : {"Fn::Join" : [ "", ["/CloudMosaic/", { "Ref" : "Stage" }, "/AppOptions/MosaicStorageBucket" ] ]}
             }
         },
 
@@ -449,7 +449,7 @@
             "Properties" : {
                 "Type" : "String",
                 "Value" : { "Ref" : "TableGallery" },
-                "Name" : {"Fn::Join" : [ "", ["/CloudMosaic/", { "Ref" : "Stage" }, "/TableGallery" ] ]}
+                "Name" : {"Fn::Join" : [ "", ["/CloudMosaic/", { "Ref" : "Stage" }, "/AppOptions/TableGallery" ] ]}
             }
         },
 
@@ -458,7 +458,7 @@
             "Properties" : {
                 "Type" : "String",
                 "Value" : { "Ref" : "TableGalleryItems" },
-                "Name" : {"Fn::Join" : [ "", ["/CloudMosaic/", { "Ref" : "Stage" }, "/TableGalleryItems" ] ]}
+                "Name" : {"Fn::Join" : [ "", ["/CloudMosaic/", { "Ref" : "Stage" }, "/AppOptions/TableGalleryItems" ] ]}
             }
         },
 
@@ -467,7 +467,7 @@
             "Properties" : {
                 "Type" : "String",
                 "Value" : { "Ref" : "TableMosaic" },
-                "Name" : {"Fn::Join" : [ "", ["/CloudMosaic/", { "Ref" : "Stage" }, "/TableMosaic" ] ]}
+                "Name" : {"Fn::Join" : [ "", ["/CloudMosaic/", { "Ref" : "Stage" }, "/AppOptions/TableMosaic" ] ]}
             }
         },
 
@@ -476,7 +476,7 @@
             "Properties" : {
                 "Type" : "String",
                 "Value" : { "Ref" : "ZipExpanderJobQueue" },
-                "Name" : {"Fn::Join" : [ "", ["/CloudMosaic/", { "Ref" : "Stage" }, "/JobQueueArn" ] ]}
+                "Name" : {"Fn::Join" : [ "", ["/CloudMosaic/", { "Ref" : "Stage" }, "/AppOptions/JobQueueArn" ] ]}
             }
         },
 
@@ -485,7 +485,7 @@
             "Properties" : {
                 "Type" : "String",
                 "Value" : { "Ref" : "ZipExpanderJobDefinition" },
-                "Name" : {"Fn::Join" : [ "", ["/CloudMosaic/", { "Ref" : "Stage" }, "/JobDefinitionArn" ] ]}
+                "Name" : {"Fn::Join" : [ "", ["/CloudMosaic/", { "Ref" : "Stage" }, "/AppOptions/JobDefinitionArn" ] ]}
             }
         },
 

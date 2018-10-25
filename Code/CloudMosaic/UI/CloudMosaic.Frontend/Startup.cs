@@ -10,6 +10,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
+using Amazon;
+using Amazon.Util;
+
 namespace CloudMosaic.Frontend
 {
     public class Startup
@@ -17,6 +20,7 @@ namespace CloudMosaic.Frontend
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
+            ConfigureDynamoDB();
         }
 
         public IConfiguration Configuration { get; }
@@ -36,6 +40,19 @@ namespace CloudMosaic.Frontend
 
 
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
+        }
+
+        private void ConfigureDynamoDB()
+        {
+            string value;
+            if ((value = this.Configuration["AppOptions:TableGallery"]) != null)
+            {
+                AWSConfigsDynamoDB.Context.AddMapping(new TypeMapping(typeof(Models.Gallery), value));
+            }
+            if ((value = this.Configuration["AppOptions:TableMosaic"]) != null)
+            {
+                AWSConfigsDynamoDB.Context.AddMapping(new TypeMapping(typeof(Models.Mosaic), value));
+            }
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

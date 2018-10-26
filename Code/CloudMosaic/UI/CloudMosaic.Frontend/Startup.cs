@@ -12,6 +12,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 using Amazon;
 using Amazon.Util;
+using Microsoft.Extensions.Logging;
 
 namespace CloudMosaic.Frontend
 {
@@ -61,8 +62,10 @@ namespace CloudMosaic.Frontend
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
         {
+            loggerFactory.AddAWSProvider(this.Configuration.GetAWSLoggingConfigSection());
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();

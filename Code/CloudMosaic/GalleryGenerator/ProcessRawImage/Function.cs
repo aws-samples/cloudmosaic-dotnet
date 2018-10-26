@@ -66,7 +66,7 @@ namespace ProcessRawImage
                 Quality = int.Parse(Environment.GetEnvironmentVariable(QUALITY_ENV));
             }
 
-            if(string.IsNullOrEmpty(Environment.GetEnvironmentVariable("TableGalleryItems")))
+            if(!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("TableGalleryItems")))
             {
                 this._tableGalleryItems = Environment.GetEnvironmentVariable("TableGalleryItems");                
             }

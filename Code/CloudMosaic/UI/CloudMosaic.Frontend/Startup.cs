@@ -39,7 +39,12 @@ namespace CloudMosaic.Frontend
             services.AddSingleton<MosaicManager>();
 
 
-            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
+            services.AddMvc()
+                    .SetCompatibilityVersion(CompatibilityVersion.Version_2_1)
+                    .AddRazorPagesOptions(o =>
+                    {
+                        o.Conventions.ConfigureFilter(new IgnoreAntiforgeryTokenAttribute());
+                    });
         }
 
         private void ConfigureDynamoDB()

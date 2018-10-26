@@ -96,23 +96,10 @@ namespace CloudMosaic.Frontend
                 input.MosaicId = mosaicId;
                 input.UserId = userId;
 
-                var executionName = new StringBuilder();
-                foreach(char c in putRequest.Key)
-                {
-                    if(char.IsLetterOrDigit(c))
-                    {
-                        executionName.Append(c);
-                    }
-                    else
-                    {
-                        executionName.Append('-');
-                    }
-                }
-
                 var stepResponse = await this._stepClient.StartExecutionAsync(new StartExecutionRequest
                 {
                     StateMachineArn = this._appOptions.StateMachineArn,
-                    Name = executionName.ToString(),
+                    Name = $"{Utilities.MakeSafeName(putRequest.Key, 128)}",
                     Input = JsonConvert.SerializeObject(input)
                 });
 
@@ -133,24 +120,11 @@ namespace CloudMosaic.Frontend
 
         public async Task StartGalleryImport(string userId, string galleryId, string importUrl)
         {
-            var jobQueueName = new StringBuilder();
-            foreach (char c in galleryId)
-            {
-                if (char.IsLetterOrDigit(c))
-                {
-                    jobQueueName.Append(c);
-                }
-                else
-                {
-                    jobQueueName.Append('-');
-                }
-            }
-
             var submitRequest = new SubmitJobRequest
             {
                 JobQueue = this._appOptions.JobQueueArn,
                 JobDefinition = this._appOptions.JobDefinitionArn,
-                JobName = $"{jobQueueName.ToString()}",
+                JobName = $"{Utilities.MakeSafeName(galleryId, 128)}",
                 ContainerOverrides = new ContainerOverrides
                 {
                     Environment = new List<Amazon.Batch.Model.KeyValuePair>

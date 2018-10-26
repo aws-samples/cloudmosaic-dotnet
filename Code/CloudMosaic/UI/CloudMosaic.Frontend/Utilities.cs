@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace CloudMosaic.Frontend
@@ -16,6 +17,31 @@ namespace CloudMosaic.Frontend
             {
                 output.Write(buffer, 0, len);
             }
+        }
+
+        public static string MakeSafeName(string displayName, int maxSize)
+        {
+            var builder = new StringBuilder();
+            foreach (char c in displayName)
+            {
+                if (char.IsLetterOrDigit(c))
+                {
+                    builder.Append(c);
+                }
+                else
+                {
+                    builder.Append('-');
+                }
+            }
+
+            var name = builder.ToString();
+
+            if(maxSize < name.Length)
+            {
+                name = name.Substring(0, maxSize);
+            }
+
+            return name;
         }
     }
 }

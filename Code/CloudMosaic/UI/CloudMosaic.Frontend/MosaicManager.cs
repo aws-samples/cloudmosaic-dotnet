@@ -99,7 +99,7 @@ namespace CloudMosaic.Frontend
                 var stepResponse = await this._stepClient.StartExecutionAsync(new StartExecutionRequest
                 {
                     StateMachineArn = this._appOptions.StateMachineArn,
-                    Name = $"{Utilities.MakeSafeName(putRequest.Key, 128)}",
+                    Name = $"{Utilities.MakeSafeName(putRequest.Key, 80)}",
                     Input = JsonConvert.SerializeObject(input)
                 });
 

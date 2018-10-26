@@ -3,6 +3,10 @@
   "Transform" : "AWS::Serverless-2016-10-31",
   "Description" : "Template that creates a S3 bucket and a Lambda function that will be invoked when new objects are upload to the bucket.",
   "Parameters" : {
+    "TableGalleryItems" : {
+        "Type" : "AWS::SSM::Parameter::Value<String>",
+        "Default" : "/CloudMosaic/prod/AppOptions/TableGalleryItems"
+    }
   },
 
   "Conditions" : {
@@ -29,6 +33,11 @@
         "Role": null,
         "Policies": [ "AWSLambdaFullAccess", "AmazonRekognitionReadOnlyAccess" ],
         "Tracing" : "Active",
+        "Environment" : {
+			"Variables" : {
+				"TableGalleryItems" : { "Ref" : "TableGalleryItems" }
+			}
+		},
         "DeadLetterQueue" : {"Type" : "SQS", "TargetArn": {"Fn::GetAtt" : [ "ProcessRawImageFunctionDLQ", "Arn"]}},
         "Events": {
         }

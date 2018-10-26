@@ -42,6 +42,8 @@ namespace ProcessRawImage
 
         IAmazonDynamoDB DynamoDBClient { get; set; }
 
+        string _tableGalleryItems = "GalleryItems";
+
         /// <summary>
         /// Default constructor. This constructor is used by Lambda to construct the instance. When invoked in a Lambda environment
         /// the AWS credentials will come from the IAM role associated with the function and the AWS region will be set to the
@@ -63,6 +65,13 @@ namespace ProcessRawImage
             {
                 Quality = int.Parse(Environment.GetEnvironmentVariable(QUALITY_ENV));
             }
+
+            if(string.IsNullOrEmpty(Environment.GetEnvironmentVariable("TableGalleryItems")))
+            {
+                this._tableGalleryItems = Environment.GetEnvironmentVariable("TableGalleryItems");                
+            }
+
+            Console.WriteLine($"Gallery Item table configured to {this._tableGalleryItems}");
         }
 
         /// <summary>
@@ -124,7 +133,7 @@ namespace ProcessRawImage
         {
             var putRequest = new PutItemRequest
             {
-                TableName = "GalleryItems",
+                TableName = this._tableGalleryItems,
                 Item = new Dictionary<string, AttributeValue>
                         {
                             {"GalleryId", new AttributeValue{S = galleryId } },

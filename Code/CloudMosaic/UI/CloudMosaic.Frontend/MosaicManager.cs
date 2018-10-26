@@ -133,11 +133,24 @@ namespace CloudMosaic.Frontend
 
         public async Task StartGalleryImport(string userId, string galleryId, string importUrl)
         {
+            var jobQueueName = new StringBuilder();
+            foreach (char c in galleryId)
+            {
+                if (char.IsLetterOrDigit(c))
+                {
+                    jobQueueName.Append(c);
+                }
+                else
+                {
+                    jobQueueName.Append('-');
+                }
+            }
+
             var submitRequest = new SubmitJobRequest
             {
                 JobQueue = this._appOptions.JobQueueArn,
                 JobDefinition = this._appOptions.JobDefinitionArn,
-                JobName = $"{galleryId}",
+                JobName = $"{jobQueueName.ToString()}",
                 ContainerOverrides = new ContainerOverrides
                 {
                     Environment = new List<Amazon.Batch.Model.KeyValuePair>

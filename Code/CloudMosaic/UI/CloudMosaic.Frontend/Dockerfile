@@ -8,7 +8,10 @@ WORKDIR /src
 COPY ["UI/CloudMosaic.Frontend/CloudMosaic.Frontend.csproj", "UI/CloudMosaic.Frontend/"]
 COPY ["CloudMosaic.Common/CloudMosaic.Common.csproj", "CloudMosaic.Common/"]
 COPY ["nuget.config", "./"]
+COPY ["NuGetCache/AWSSDK.Core.3.3.29.0.nupkg", "NuGetCache/"]
 COPY ["NuGetCache/AWSSDK.Extensions.Configuration.SystemsManager.1.0.0.nupkg", "NuGetCache/"]
+COPY ["NuGetCache/Amazon.Extensions.CognitoAuthentication.dll", "NuGetCache/"]
+COPY ["NuGetCache/Amazon.AspNetCore.Identity.AWSCognito.dll", "NuGetCache/"]
 RUN dotnet restore "UI/CloudMosaic.Frontend/CloudMosaic.Frontend.csproj"
 COPY . .
 WORKDIR "/src/UI/CloudMosaic.Frontend"

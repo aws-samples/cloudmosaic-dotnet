@@ -7,6 +7,5 @@ namespace CloudMosaic.Frontend
 {
     public class UIConstants
     {
-        public const string DEFAULT_USER_ID = "1";
     }
 }

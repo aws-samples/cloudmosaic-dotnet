@@ -41,7 +41,7 @@ namespace CloudMosaic.Frontend.Pages
         {
             var gallery = new Gallery
             {
-                UserId = UIConstants.DEFAULT_USER_ID,
+                UserId = this.HttpContext.User.Identity.Name,
                 GalleryId = $"{this.Name}-{Guid.NewGuid().ToString()}",
                 Name = this.Name,
                 Attributions = this.Attributions,

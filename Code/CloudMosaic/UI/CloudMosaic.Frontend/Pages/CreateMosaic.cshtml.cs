@@ -43,7 +43,7 @@ namespace CloudMosaic.Frontend.Pages
 
         public async Task OnGetAsync()
         {
-            var search = this._ddbContext.QueryAsync<Gallery>(UIConstants.DEFAULT_USER_ID);
+            var search = this._ddbContext.QueryAsync<Gallery>(this.HttpContext.User.Identity.Name);
 
             this.Galleries = await search.GetRemainingAsync();
         }
@@ -65,10 +65,10 @@ namespace CloudMosaic.Frontend.Pages
 
             using (var stream = MosaicSourceImage.OpenReadStream())
             {
-                await this._mosaicManager.CreateMosaic(UIConstants.DEFAULT_USER_ID, this.GalleryId, this.Name ?? fileName, stream);
+                await this._mosaicManager.CreateMosaic(this.HttpContext.User.Identity.Name, this.GalleryId, this.Name ?? fileName, stream);
             }
 
-            return RedirectToPage("Index");
+            return RedirectToPage("Mosaics");
         }
     }
 }

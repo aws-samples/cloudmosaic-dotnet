@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -38,6 +40,20 @@ namespace CloudMosaic.Frontend
             services.AddAWSService<Amazon.StepFunctions.IAmazonStepFunctions>();
 
             services.AddSingleton<MosaicManager>();
+
+
+            //services.AddDbContext<ApplicationDbContext>(options =>
+            //    options.UseSqlServer(
+            //        Configuration.GetConnectionString("DefaultConnection")));
+            //services.AddDefaultIdentity<IdentityUser>()
+            //    .AddEntityFrameworkStores<ApplicationDbContext>();
+
+
+            services.AddCognitoIdentityProvider(Configuration.GetSection("Authentication:Cognito"));
+            services.ConfigureApplicationCookie(options =>
+            {
+                options.LoginPath = new PathString("/Identity/Account/Login");
+            });
 
 
             services.AddMvc()
@@ -79,6 +95,8 @@ namespace CloudMosaic.Frontend
             app.UseHttpsRedirection();
             app.UseStaticFiles();
             app.UseCookiePolicy();
+
+            app.UseAuthentication();
 
             app.UseMvc();
         }

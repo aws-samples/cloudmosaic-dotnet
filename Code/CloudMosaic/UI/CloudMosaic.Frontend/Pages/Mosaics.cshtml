@@ -1,0 +1,45 @@
+﻿@page
+@model MosaicsModel
+@{
+    ViewData["Title"] = "My Mosaics";
+}
+
+<h2>My Mosaics</h2>
+
+<p>Here are the mosaics you have created.</p>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th scope="col">Name</th>
+            <th scope="col">Created</th>
+            <th scope="col">Status</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (this.Model?.Mosaics != null)
+        {
+            @foreach (var mosaic in this.Model.Mosaics)
+            {
+                <tr>
+                    <td>@mosaic.Name</td>
+                    <td>@mosaic.CreateDate</td>
+                    <td>@mosaic.Status</td>
+                    <td>
+                        @if (mosaic.Status == Models.Mosaic.Statuses.Ready)
+                        {
+                            <a href="@mosaic.MosaicFullUrl" target="_blank"><img src="@mosaic.MosaicThumbnailUrl" /></a>
+                        }
+                    </td>
+                </tr>
+            }
+        }
+    </tbody>
+</table>
+
+<div class="row mt-3">
+    <div class="col-sm form-group">
+        <a class="btn btn-link" asp-page="/CreateMosaic">Create New Mosaic</a>
+    </div>
+</div>

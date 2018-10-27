@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using Microsoft.AspNetCore.Authorization;
 
 using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.DataModel;
@@ -12,6 +13,7 @@ using CloudMosaic.Frontend.Models;
 
 namespace CloudMosaic.Frontend.Pages
 {
+    [Authorize]
     public class GalleriesModel : PageModel
     {
         DynamoDBContext _ddbContext;
@@ -25,9 +27,9 @@ namespace CloudMosaic.Frontend.Pages
 
         public async Task OnGetAsync()
         {
-            var search = this._ddbContext.QueryAsync<Gallery>(UIConstants.DEFAULT_USER_ID);
+            var search = this._ddbContext.QueryAsync<Gallery>(this.HttpContext.User.Identity.Name);
 
-            this.Galleries = await search.GetRemainingAsync();
+            this.Galleries = await search.GetRemainingAsync().ConfigureAwait(false);
         }
     }
 }

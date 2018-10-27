@@ -44,7 +44,7 @@ namespace CloudMosaic.Frontend.Pages
         public async Task OnGet(string galleryId)
         {
             this.GalleryId = galleryId;
-            var gallery = await this._ddbContext.LoadAsync<Gallery>(UIConstants.DEFAULT_USER_ID, this.GalleryId);
+            var gallery = await this._ddbContext.LoadAsync<Gallery>(this.HttpContext.User.Identity.Name, this.GalleryId);
 
             this.Name = gallery.Name;
             this.Attributions = gallery.Attributions;
@@ -55,7 +55,7 @@ namespace CloudMosaic.Frontend.Pages
         {
             var gallery = new Gallery
             {
-                UserId = UIConstants.DEFAULT_USER_ID,
+                UserId = this.HttpContext.User.Identity.Name,
                 GalleryId = this.GalleryId,
                 Name = this.Name,
                 Attributions = this.Attributions,

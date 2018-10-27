@@ -22,6 +22,7 @@ namespace CloudMosaic.Frontend
                 .ConfigureAppConfiguration(builder =>
                 {
                     builder.AddSystemsManager("/CloudMosaic/prod");
+                    builder.AddSystemsManager("/CloudMosaic/Global");
                 })
                 .UseStartup<Startup>();
     }

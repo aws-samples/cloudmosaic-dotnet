@@ -317,7 +317,8 @@
 				"arn:aws:iam::aws:policy/AWSBatchFullAccess",
 				"arn:aws:iam::aws:policy/AmazonSSMReadOnlyAccess",
 				"arn:aws:iam::aws:policy/CloudWatchLogsFullAccess",
-				"arn:aws:iam::aws:policy/AWSStepFunctionsFullAccess"
+				"arn:aws:iam::aws:policy/AWSStepFunctionsFullAccess",
+				"arn:aws:iam::aws:policy/AmazonCognitoPowerUser"
 			]
 		  }
 		},

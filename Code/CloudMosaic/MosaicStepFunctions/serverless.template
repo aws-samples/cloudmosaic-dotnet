@@ -31,7 +31,7 @@
     "DetermineBestImagesFunction" : {
         "Type" : "AWS::Lambda::Function",
         "Properties" : {
-            "Handler" : "DetermineBestImagesFunction::DetermineBestImagesFunction.Function::FunctionHandler",            
+            "Handler" : "DetermineBestImagesFunction::DetermineBestImagesFunction::FunctionHandler",            
             "Role"    : {"Fn::GetAtt" : [ "LambdaRole", "Arn"]},
             "Runtime" : "dotnetcore2.1",
             "MemorySize" : 512,

@@ -51,7 +51,10 @@ namespace ProcessRawImage
         /// </summary>
         public Function()
         {
-            Amazon.XRay.Recorder.Handlers.AwsSdk.AWSSDKHandler.RegisterXRayForAllServices();
+            if(!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("LAMBDA_TASK_ROOT")))
+            {
+                Amazon.XRay.Recorder.Handlers.AwsSdk.AWSSDKHandler.RegisterXRayForAllServices();
+            }
 
             S3Client = new AmazonS3Client();
             RekognitionClient = new AmazonRekognitionClient();

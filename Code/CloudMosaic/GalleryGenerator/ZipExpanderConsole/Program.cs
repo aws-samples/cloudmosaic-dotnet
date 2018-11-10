@@ -5,9 +5,6 @@ using System.IO.Compression;
 using System.Net.Http;
 using System.Threading.Tasks;
 
-using Amazon.Rekognition;
-using Amazon.Rekognition.Model;
-
 using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.Model;
 
@@ -38,7 +35,6 @@ namespace ZipExpanderConsole
             }
 
             using (var s3Client = new AmazonS3Client())
-            using (var rekClient = new AmazonRekognitionClient())
             using (var ddbClient = new AmazonDynamoDBClient())
             {
 
@@ -106,9 +102,6 @@ namespace ZipExpanderConsole
                                 Key = destinationKey,
                                 InputStream = content
                             });
-
-
-                            Console.WriteLine("Image passed moderation test");
                         }
                         catch (Exception e)
                         {

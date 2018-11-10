@@ -76,7 +76,7 @@ namespace CloudMosaic.Frontend
                     Key = S3KeyManager.DetermineS3Key(userId, mosaicId, S3KeyManager.ImageType.Original),
                     FilePath = tempFile
                 };
-                await this._s3Client.PutObjectAsync(putRequest);
+                await this._s3Client.PutObjectAsync(putRequest).ConfigureAwait(false);
 
                 var mosaic = new Mosaic
                 {
@@ -101,10 +101,10 @@ namespace CloudMosaic.Frontend
                     StateMachineArn = this._appOptions.StateMachineArn,
                     Name = $"{Utilities.MakeSafeName(putRequest.Key, 80)}",
                     Input = JsonConvert.SerializeObject(input)
-                });
+                }).ConfigureAwait(false);
 
                 mosaic.ExecutionArn = stepResponse.ExecutionArn;
-                await this._ddbContext.SaveAsync(mosaic);
+                await this._ddbContext.SaveAsync(mosaic).ConfigureAwait(false);
 
                 return mosaic;
             }
@@ -138,10 +138,10 @@ namespace CloudMosaic.Frontend
                 }
             };
 
-            await this._batchClient.SubmitJobAsync(submitRequest);
+            await this._batchClient.SubmitJobAsync(submitRequest).ConfigureAwait(false);
         }
 
-        public async Task StartGalleryImport1(string userId, string galleryId, string importUrl)
+        public async Task AlternativeStartGalleryImport(string userId, string galleryId, string importUrl)
         {
             var runRequest = new RunTaskRequest
             {
@@ -178,7 +178,7 @@ namespace CloudMosaic.Frontend
                 }                
             };
 
-            await this._ecsClient.RunTaskAsync(runRequest);
+            await this._ecsClient.RunTaskAsync(runRequest).ConfigureAwait(false);
         }
     }
 }

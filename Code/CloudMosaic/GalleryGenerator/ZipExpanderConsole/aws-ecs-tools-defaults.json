@@ -1,21 +1,14 @@
+
 {
-  "region": "us-west-2",
-  "profile": "default",
-  "configuration": "Release",
-  "tag": "zipexpanderconsole:latest",
-  "task-definition-name": "ZipExpanderConsole",
-  "task-cpu": "512",
-  "task-memory": "1024",
-  "task-definition-task-role": "arn:aws:iam::626492997873:role/ECS-Demo",
-  "task-execution-role": "ecsTaskExecutionRole",
-  "container-name": "ZipExpanderConsole",
-  "container-port-mapping": "",
-  "container-environment-variables": "\"ZIP_EXPANDER_BUCKET\"=\"normj-mosaics\";\"ZIP_EXPANDER_GALLERY_ID\"=\"Animals\";\"ZIP_EXPANDER_ZIP_ARCHIVE_KEY\"=\"InputSources/Animals.zip\"",
-  "cluster": "CloudMosaic",
-  "launch-type": "FARGATE",
-  "launch-subnets": "subnet-f443f291,subnet-e21acd95,subnet-d620d48f",
-  "launch-security-groups": "sg-1c7b0579",
-  "assign-public-ip": true,
-  "task-count": 1,
-  "vstoolkit-deployment-mode": "RunTask"
+    "region" : "us-east-1",
+    "profile" : "demo",
+    "configuration" : "Release",
+    "tag"           : "zipexpanderconsole:latest",
+    "task-definition-name" : "ZipExpanderConsole",
+    "task-cpu"             : "512",
+    "task-memory"          : "1024",
+    "task-definition-task-role" : "arn:aws:iam::679385970417:role/Mosaic-ZipExpander",
+    "task-execution-role"       : "ecsTaskExecutionRole",
+    "vstoolkit-deployment-mode" : "PushOnly",
+    "docker-build-working-dir"  : ""
 }

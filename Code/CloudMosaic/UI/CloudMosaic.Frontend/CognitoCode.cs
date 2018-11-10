@@ -21,12 +21,12 @@ namespace CloudMosaic.Frontend
         private const string ConfigurationClientSecretKey = "ClientSecret";
         private const string ConfigurationUserPoolIdKey = "UserPoolId";
         private const string ConfigurationAWSRegionIdKey = "RegionId";
-        public static IServiceCollection AddCognitoIdentityProvider(this IServiceCollection services, IConfigurationSection configurationSection)
+        public static IServiceCollection AddCognitoIdentityProvider(this IServiceCollection services, IConfiguration configuration)
         {
 
             services.InjectCognitoUser<CognitoUser>();
 
-            services.ConfigureCognitoIdentityProviderClient(configurationSection);
+            services.ConfigureCognitoIdentityProviderClient(configuration);
 
             return services;
         }
@@ -54,25 +54,29 @@ namespace CloudMosaic.Frontend
             return services;
         }
 
-        public static void ConfigureCognitoIdentityProviderClient(this IServiceCollection services, IConfigurationSection configurationSection)
+        public static void ConfigureCognitoIdentityProviderClient(this IServiceCollection services, IConfiguration configuration)
         {
+            var configurationSection = configuration.GetSection("Authentication:Cognito");
+
             var poolclient = new UserPoolClientType
             {
                 ClientId = configurationSection.GetValue<string>(ConfigurationClientIdKey),
                 ClientSecret = configurationSection.GetValue<string>(ConfigurationClientSecretKey)
             };
 
-            // Not rely on the user pool id to retrieve the region
-            var region = configurationSection.GetValue<string>(ConfigurationAWSRegionIdKey);
-            AmazonCognitoIdentityProviderClient provider;
-            if (string.IsNullOrEmpty(region))
-            {
-                provider = new AmazonCognitoIdentityProviderClient();
-            }
-            else
-            {
-                provider = new AmazonCognitoIdentityProviderClient(RegionEndpoint.GetBySystemName(region));
-            }
+            var awsOptions = configuration.GetAWSOptions();
+            var provider = awsOptions.CreateServiceClient<IAmazonCognitoIdentityProvider>() as AmazonCognitoIdentityProviderClient;
+            //// Not rely on the user pool id to retrieve the region
+            //var region = configurationSection.GetValue<string>(ConfigurationAWSRegionIdKey);
+            //AmazonCognitoIdentityProviderClient provider;
+            //if (string.IsNullOrEmpty(region))
+            //{
+            //    provider = new AmazonCognitoIdentityProviderClient();
+            //}
+            //else
+            //{
+            //    provider = new AmazonCognitoIdentityProviderClient(RegionEndpoint.GetBySystemName(region));
+            //}
 
             var pool = new CognitoUserPool(configurationSection.GetValue<string>(ConfigurationUserPoolIdKey), poolclient.ClientId, provider, poolclient.ClientSecret);
 

@@ -7,14 +7,14 @@
 
     "All the command line options for the Lambda command can be specified in this file."
   ],
-  "profile": "default",
-  "region": "us-west-2",
+  "profile": "demo",
+  "region": "us-east-1",
   "configuration": "Release",
   "framework": "netcoreapp2.1",
   "s3-prefix": "MosaicStepFunctions/",
   "template": "serverless.template",
   "template-parameters": "",
   "template-substitutions": "$.Resources.StateMachine.Properties.DefinitionString.Fn::Sub=state-machine.json",
-  "s3-bucket": "normj-west2",
+  "s3-bucket": "mosaic-dev-artifacts",
   "stack-name": "MosaicStepFunctions"
 }

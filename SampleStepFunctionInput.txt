@@ -1,0 +1,24 @@
+// Setup
+S3 Bucket - Clear everything but Mosaic/normj@amazon.com/the-family/Original.jpg
+Empty Tables except:
+	Gallery normj@amazon.com, normj-family-picks, Name=Family Picks, Status=0
+	Mosaic normj@amazon.com, the-family, Name=Norm's Family, Status=0
+Batch Min Capacity set to 4
+
+
+
+// Batch Submit Fields
+normj-family-picks
+https://normj-mosaics.s3.us-west-2.amazonaws.com/InputSources/FamilyImageDataSet.zip?X-Amz-Expires=89994&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAJOROCVZEBRJGRG5A/20181101/us-west-2/s3/aws4_request&X-Amz-Date=20181101T011105Z&X-Amz-SignedHeaders=host&X-Amz-Signature=3d48afa1508d4fffa6a954d1cfb3ddbde3aa6baff2d266f085e42076258feb40
+
+
+
+{
+  "UserId": "normj@amazon.com",
+  "MosaicId": "the-family",
+  "GalleryId": "normj-family-picks",
+  "Bucket": "mosaic-dev-app",
+  "TableGalleryItems": "GalleryItem",
+  "TableMosaic": "Mosaic",
+  "SourceKey": "Mosaic/normj@amazon.com/the-family/Original.jpg"
+}

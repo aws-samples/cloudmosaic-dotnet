@@ -8,8 +8,8 @@
     "All the command line options for the Lambda command can be specified in this file."
   ],
 
-  "profile":"default",
-  "region" : "us-west-2",
+  "profile":"demo",
+  "region" : "us-east-1",
   "configuration" : "Release",
   "framework" : "netcoreapp2.1",
   "function-runtime":"dotnetcore2.1",

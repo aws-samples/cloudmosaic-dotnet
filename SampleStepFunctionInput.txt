@@ -5,20 +5,46 @@ Empty Tables except:
 	Mosaic normj@amazon.com, the-family, Name=Norm's Family, Status=0
 Batch Min Capacity set to 4
 
+Make sure S3 bucket notifcations are cleared out
+
+Make sure all launchsettings.json file are pointing to valid path to dotnet-lambda-tester-2.1.exe
+
+Set breakpoint at line 106 in Function.fs just after tileInfos is loaded.
 
 
 // Batch Submit Fields
 normj-family-picks
-https://normj-mosaics.s3.us-west-2.amazonaws.com/InputSources/FamilyImageDataSet.zip?X-Amz-Expires=89994&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAJOROCVZEBRJGRG5A/20181101/us-west-2/s3/aws4_request&X-Amz-Date=20181101T011105Z&X-Amz-SignedHeaders=host&X-Amz-Signature=3d48afa1508d4fffa6a954d1cfb3ddbde3aa6baff2d266f085e42076258feb40
+https://mosaic-sources.s3.us-west-2.amazonaws.com/SampleInput.zip?AWSAccessKeyId=AKIAJIKS3JVDNLRW2K5A&Expires=1546293420&Signature=HUWdW%2F3XygVd9awKttJrm%2BLMC%2Fo%3D
 
 
 
 {
   "UserId": "normj@amazon.com",
   "MosaicId": "the-family",
-  "GalleryId": "normj-family-picks",
+  "GalleryId": "normj-family-pick",
   "Bucket": "mosaic-dev-app",
   "TableGalleryItems": "GalleryItem",
   "TableMosaic": "Mosaic",
   "SourceKey": "Mosaic/normj@amazon.com/the-family/Original.jpg"
 }
+
+
+// Gallery Generator
+
+Walk Through Batch Code
+Push image to ECR
+
+Look at serverless template and talk about DLQ
+Deploy Function
+Look at code while deploying
+Setup Event Source
+	Galleries/Raw/
+
+Go to Batch console and submit job
+
+
+// Step Functions
+
+
+// Frontend
+

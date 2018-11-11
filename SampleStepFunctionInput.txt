@@ -48,3 +48,39 @@ Go to Batch console and submit job
 
 // Frontend
 
+Launch Web App
+View Mosaics
+Upload image to create mosaic
+View Galleries
+
+Go to VS
+Open MosaicManager and explain how step functions and batch are kicked off.
+
+Talk about appOptions
+Show appsettingss.development.json
+Talk about parameter store
+Show in CloudFormation template all of the Parameters
+Show parameter store in the console (us-west-2)
+Hook up SSM config provider
+
+				NuGet: AWSSDK.Extensions.Configuration.SystemsManager
+
+                .ConfigureAppConfiguration(builder =>
+                {
+                    builder.AddSystemsManager("/CloudMosaic/prod");
+                    builder.AddSystemsManager("/CloudMosaic/Global");
+                })
+				
+				
+Talk about identity
+What is Cognito User Pools
+Open Starup.cs show common SQL Server setup then the replacement.	
+
+Talk about DataProtection
+
+Show Deployment wizard
+	Wait for resources to come online so lets look CI/CD
+	
+	
+
+	

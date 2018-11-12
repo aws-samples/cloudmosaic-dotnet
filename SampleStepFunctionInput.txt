@@ -9,7 +9,10 @@ Make sure S3 bucket notifcations are cleared out
 
 Make sure all launchsettings.json file are pointing to valid path to dotnet-lambda-tester-2.1.exe
 
+Set breakpoint at line 91 of Function.cs in ProcessRawImage, the start of FunctionHandler
 Set breakpoint at line 106 in Function.fs just after tileInfos is loaded.
+
+Delete all CloudFormation Stacks
 
 
 // Batch Submit Fields

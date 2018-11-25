@@ -14,6 +14,8 @@ Set breakpoint at line 106 in Function.fs just after tileInfos is loaded.
 
 Delete all CloudFormation Stacks
 
+Open browser for batch in us-east-1
+Open browser for CodePipeline us-west-2
 
 // Batch Submit Fields
 normj-family-picks

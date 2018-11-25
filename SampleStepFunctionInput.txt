@@ -1,0 +1,91 @@
+// Setup
+S3 Bucket - Clear everything but Mosaic/normj@amazon.com/the-family/Original.jpg
+Empty Tables except:
+	Gallery normj@amazon.com, normj-family-picks, Name=Family Picks, Status=0
+	Mosaic normj@amazon.com, the-family, Name=Norm's Family, Status=0
+Batch Min Capacity set to 4
+
+Make sure S3 bucket notifcations are cleared out
+
+Make sure all launchsettings.json file are pointing to valid path to dotnet-lambda-tester-2.1.exe
+
+Set breakpoint at line 91 of Function.cs in ProcessRawImage, the start of FunctionHandler
+Set breakpoint at line 106 in Function.fs just after tileInfos is loaded.
+
+Delete all CloudFormation Stacks
+
+Open browser for batch in us-east-1
+Open browser for CodePipeline us-west-2
+
+// Batch Submit Fields
+normj-family-picks
+https://mosaic-sources.s3.us-west-2.amazonaws.com/SampleInput.zip?AWSAccessKeyId=AKIAJIKS3JVDNLRW2K5A&Expires=1546293420&Signature=HUWdW%2F3XygVd9awKttJrm%2BLMC%2Fo%3D
+
+
+
+{
+  "UserId": "normj@amazon.com",
+  "MosaicId": "the-family",
+  "GalleryId": "normj-family-pick",
+  "Bucket": "mosaic-dev-app",
+  "TableGalleryItems": "GalleryItem",
+  "TableMosaic": "Mosaic",
+  "SourceKey": "Mosaic/normj@amazon.com/the-family/Original.jpg"
+}
+
+
+// Gallery Generator
+
+Walk Through Batch Code
+Push image to ECR
+
+Look at serverless template and talk about DLQ
+Deploy Function
+Look at code while deploying
+Setup Event Source
+	Galleries/Raw/
+
+Go to Batch console and submit job
+
+
+// Step Functions
+
+
+// Frontend
+
+Launch Web App
+View Mosaics
+Upload image to create mosaic
+View Galleries
+
+Go to VS
+Open MosaicManager and explain how step functions and batch are kicked off.
+
+Talk about appOptions
+Show appsettingss.development.json
+Talk about parameter store
+Show in CloudFormation template all of the Parameters
+Show parameter store in the console (us-west-2)
+Hook up SSM config provider
+
+				NuGet: AWSSDK.Extensions.Configuration.SystemsManager
+
+                .ConfigureAppConfiguration(builder =>
+                {
+                    builder.AddSystemsManager("/CloudMosaic/prod");
+                    builder.AddSystemsManager("/CloudMosaic/Global");
+                })
+				
+				
+Talk about identity
+What is Cognito User Pools
+Open Starup.cs show common SQL Server setup then the replacement.	
+
+Talk about DataProtection
+
+Show Deployment wizard
+	Wait for resources to come online so lets look CI/CD
+	
+	
+
+	

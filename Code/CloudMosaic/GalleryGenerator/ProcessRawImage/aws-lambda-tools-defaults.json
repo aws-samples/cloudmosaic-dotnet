@@ -6,13 +6,13 @@
         "dotnet lambda help",
         "All the command line options for the Lambda command can be specified in this file."
     ],
-    "profile"     : "default",
-    "region"      : "us-west-2",
+    "profile"     : "demo",
+    "region"      : "us-east-1",
     "configuration" : "Release",
     "framework"     : "netcoreapp2.1",
     "s3-prefix"     : "ProcessRawImage/",
     "template"      : "serverless.template",
-    "template-parameters" : "",
-    "s3-bucket"           : "normj-west2",
+    "template-parameters" : "\"TableGalleryItems\"=\"GalleryItem\"",
+    "s3-bucket"           : "mosaic-dev-artifacts",
     "stack-name"          : "ProcessRawImage"
 }

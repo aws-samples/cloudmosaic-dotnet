@@ -12,6 +12,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
+using Amazon.AspNetCore.DataProtection.SSM;
+
 using Amazon;
 using Amazon.Util;
 using Microsoft.Extensions.Logging;
@@ -38,6 +40,7 @@ namespace CloudMosaic.Frontend
             services.AddAWSService<Amazon.ECS.IAmazonECS>();
             services.AddAWSService<Amazon.S3.IAmazonS3>();
             services.AddAWSService<Amazon.StepFunctions.IAmazonStepFunctions>();
+            services.AddAWSService<Amazon.SimpleSystemsManagement.IAmazonSimpleSystemsManagement>();
 
             services.AddSingleton<MosaicManager>();
 
@@ -49,11 +52,15 @@ namespace CloudMosaic.Frontend
             //    .AddEntityFrameworkStores<ApplicationDbContext>();
 
 
-            services.AddCognitoIdentityProvider(Configuration.GetSection("Authentication:Cognito"));
+            services.AddCognitoIdentityProvider(Configuration);
             services.ConfigureApplicationCookie(options =>
             {
                 options.LoginPath = new PathString("/Identity/Account/Login");
             });
+
+
+            services.AddDataProtection()
+                .PersistKeysToAWSSystemsManager("/CloudMosaic/DataProtection");
 
 
             services.AddMvc()

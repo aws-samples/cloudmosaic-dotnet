@@ -1,11 +1,11 @@
 {
   "AWSTemplateFormatVersion" : "2010-09-09",
   "Transform" : "AWS::Serverless-2016-10-31",
-  "Description" : "Template that creates a S3 bucket and a Lambda function that will be invoked when new objects are upload to the bucket.",
+  "Description" : "Create a Lambda funcction that will listen to images being upload to S3 and convert them into tile gallery items.",
   "Parameters" : {
     "TableGalleryItems" : {
-        "Type" : "AWS::SSM::Parameter::Value<String>",
-        "Default" : "/CloudMosaic/prod/AppOptions/TableGalleryItems"
+        "Type" : "String",
+        "Default" : "GalleryItem"
     }
   },
 
@@ -14,6 +14,7 @@
 
 
   "Resources" : {
+
 
 	"ProcessRawImageFunctionDLQ" : {
 	    "Type" : "AWS::SQS::Queue",
@@ -45,5 +46,6 @@
     }
   },
   "Outputs" : {
+	
   }
 }

@@ -1,3 +1,51 @@
+
+
+// Batch Submit Fields
+normj-family-picks
+https://mosaic-sources.s3.us-west-2.amazonaws.com/SampleInput.zip?AWSAccessKeyId=AKIAJIKS3JVDNLRW2K5A&Expires=1546293420&Signature=HUWdW%2F3XygVd9awKttJrm%2BLMC%2Fo%3D
+
+
+
+{
+  "UserId": "normj@amazon.com",
+  "MosaicId": "the-family",
+  "GalleryId": "normj-family-pick",
+  "Bucket": "mosaic-dev-app",
+  "TableGalleryItems": "GalleryItem",
+  "TableMosaic": "Mosaic",
+  "SourceKey": "Mosaic/normj@amazon.com/the-family/Original.jpg"
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // Setup
 S3 Bucket - Clear everything but Mosaic/normj@amazon.com/the-family/Original.jpg
 Empty Tables except:
@@ -17,21 +65,11 @@ Delete all CloudFormation Stacks
 Open browser for batch in us-east-1
 Open browser for CodePipeline us-west-2
 
-// Batch Submit Fields
-normj-family-picks
-https://mosaic-sources.s3.us-west-2.amazonaws.com/SampleInput.zip?AWSAccessKeyId=AKIAJIKS3JVDNLRW2K5A&Expires=1546293420&Signature=HUWdW%2F3XygVd9awKttJrm%2BLMC%2Fo%3D
 
 
 
-{
-  "UserId": "normj@amazon.com",
-  "MosaicId": "the-family",
-  "GalleryId": "normj-family-pick",
-  "Bucket": "mosaic-dev-app",
-  "TableGalleryItems": "GalleryItem",
-  "TableMosaic": "Mosaic",
-  "SourceKey": "Mosaic/normj@amazon.com/the-family/Original.jpg"
-}
+
+
 
 
 // Gallery Generator

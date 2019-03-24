@@ -74,7 +74,7 @@ namespace CloudMosaic.Frontend.Areas.Identity.Pages.Account
             {
                 var user = _pool.GetUser(Input.Email);
                 user.Attributes.Add(CognitoStandardAttributes.Email, Input.Email);
-                var result = await _userManager.CreateAsync(user, Input.Password);
+                var result = await _userManager.CreateAsync(user, Input.Password).ConfigureAwait(false);
                 if (result.Succeeded)
                 {
                     _logger.LogInformation("User created a new account with password.");

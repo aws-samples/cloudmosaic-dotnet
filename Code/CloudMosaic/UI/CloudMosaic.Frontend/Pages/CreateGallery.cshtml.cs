@@ -50,9 +50,9 @@ namespace CloudMosaic.Frontend.Pages
                 Status = Gallery.Statuses.Importing
             };
 
-            await this._importJobMananger.StartGalleryImport(gallery.UserId, gallery.GalleryId, this.ImportUrl);
+            await this._importJobMananger.StartGalleryImport(gallery.UserId, gallery.GalleryId, this.ImportUrl).ConfigureAwait(false);
 
-            await this._ddbContext.SaveAsync(gallery);
+            await this._ddbContext.SaveAsync(gallery).ConfigureAwait(false);
 
             return RedirectToPage("Galleries");
         }

@@ -44,7 +44,7 @@ namespace CloudMosaic.Frontend.Pages
         public async Task OnGet(string galleryId)
         {
             this.GalleryId = galleryId;
-            var gallery = await this._ddbContext.LoadAsync<Gallery>(this.HttpContext.User.Identity.Name, this.GalleryId);
+            var gallery = await _ddbContext.LoadAsync<Gallery>(HttpContext.User.Identity.Name, GalleryId).ConfigureAwait(false);
 
             this.Name = gallery.Name;
             this.Attributions = gallery.Attributions;
@@ -65,10 +65,10 @@ namespace CloudMosaic.Frontend.Pages
             if (!string.IsNullOrEmpty(this.ImportUrl))
             {
                 gallery.Status = Gallery.Statuses.Importing;
-                await this._importJobMananger.StartGalleryImport(gallery.UserId, gallery.GalleryId, this.ImportUrl);                
+                await this._importJobMananger.StartGalleryImport(gallery.UserId, gallery.GalleryId, this.ImportUrl).ConfigureAwait(false);                
             }
 
-            await this._ddbContext.SaveAsync(gallery);
+            await this._ddbContext.SaveAsync(gallery).ConfigureAwait(false);
 
             return RedirectToPage("Galleries");
         }

@@ -2,7 +2,7 @@
 
 // Batch Submit Fields
 normj-family-picks
-https://mosaic-sources.s3.us-west-2.amazonaws.com/SampleInput.zip?AWSAccessKeyId=AKIAJIKS3JVDNLRW2K5A&Expires=1546293420&Signature=HUWdW%2F3XygVd9awKttJrm%2BLMC%2Fo%3D
+https://mosaic-sources.s3.us-west-2.amazonaws.com/SampleInput.zip?AWSAccessKeyId=AKIAJIKS3JVDNLRW2K5A&Expires=1559181660&Signature=PGGJYrXIc60U2SC82rE48EavGuc%3D
 
 
 

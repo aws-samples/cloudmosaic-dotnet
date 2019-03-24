@@ -7,9 +7,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="AWSSDK.S3" Version="3.3.25.1" />
-    <PackageReference Include="AWSSDK.DynamoDBv2" Version="3.3.14.6" />
-    <PackageReference Include="AWSSDK.Rekognition" Version="3.3.11.5" />
+    <PackageReference Include="AWSSDK.S3" Version="3.3.100" />
+    <PackageReference Include="AWSSDK.DynamoDBv2" Version="3.3.100" />
+    <PackageReference Include="AWSSDK.Rekognition" Version="3.3.100" />
     <PackageReference Include="SixLabors.ImageSharp" Version="1.0.0-beta0005" />
     <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
   </ItemGroup>

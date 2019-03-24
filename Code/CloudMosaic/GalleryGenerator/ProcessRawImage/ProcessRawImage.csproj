@@ -7,13 +7,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Amazon.Lambda.Core" Version="1.0.0" />
-    <PackageReference Include="Amazon.Lambda.Serialization.Json" Version="1.4.0" />
-    <PackageReference Include="Amazon.Lambda.S3Events" Version="1.0.2" />
-    <PackageReference Include="AWSSDK.DynamoDBv2" Version="3.3.14.6" />
-    <PackageReference Include="AWSSDK.Rekognition" Version="3.3.11.5" />
-    <PackageReference Include="AWSSDK.S3" Version="3.3.18.6" />
-    <PackageReference Include="AWSXRayRecorder.Handlers.AwsSdk" Version="2.3.1-beta" />
+    <PackageReference Include="Amazon.Lambda.Core" Version="1.1.0" />
+    <PackageReference Include="Amazon.Lambda.Serialization.Json" Version="1.5.0" />
+    <PackageReference Include="Amazon.Lambda.S3Events" Version="1.1.0" />
+    <PackageReference Include="AWSSDK.DynamoDBv2" Version="3.3.100" />
+    <PackageReference Include="AWSSDK.Rekognition" Version="3.3.100" />
+    <PackageReference Include="AWSSDK.S3" Version="3.3.100" />
+    <PackageReference Include="AWSXRayRecorder.Handlers.AwsSdk" Version="2.5.0" />
     <PackageReference Include="SixLabors.ImageSharp" Version="1.0.0-beta0005" />
   </ItemGroup>
 

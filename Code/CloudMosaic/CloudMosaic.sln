@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.28010.2041
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.28714.193
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "GalleryGenerator", "GalleryGenerator", "{2A4B5949-96F8-4D40-B35E-143E2DDE9FF5}"
 EndProject
@@ -13,6 +13,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "MosaicStepFunctions", "Mosa
 	ProjectSection(SolutionItems) = preProject
 		MosaicStepFunctions\aws-lambda-tools-defaults.json = MosaicStepFunctions\aws-lambda-tools-defaults.json
 		MosaicStepFunctions\buildspec.yml = MosaicStepFunctions\buildspec.yml
+		MosaicStepFunctions\MosaicLayer.xml = MosaicStepFunctions\MosaicLayer.xml
 		MosaicStepFunctions\serverless.template = MosaicStepFunctions\serverless.template
 		MosaicStepFunctions\state-machine.json = MosaicStepFunctions\state-machine.json
 	EndProjectSection

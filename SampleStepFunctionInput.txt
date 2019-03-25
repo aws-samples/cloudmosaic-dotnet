@@ -52,6 +52,7 @@ Empty Tables except:
 	Gallery normj@amazon.com, normj-family-picks, Name=Family Picks, Status=0
 	Mosaic normj@amazon.com, the-family, Name=Norm's Family, Status=0
 Batch Min Capacity set to 4
+Delete Lambda layers
 
 Make sure S3 bucket notifcations are cleared out
 

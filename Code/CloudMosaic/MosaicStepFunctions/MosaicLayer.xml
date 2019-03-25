@@ -4,11 +4,11 @@
     <PackageReference Include="Amazon.Lambda.Core" Version="1.1.0" />
     <PackageReference Include="Amazon.Lambda.Serialization.Json" Version="1.5.0" />
 
-	<PackageReference Include="AWSSDK.DynamoDBv2" Version="3.3.100" />
+    <PackageReference Include="AWSSDK.DynamoDBv2" Version="3.3.100" />
     <PackageReference Include="AWSSDK.S3" Version="3.3.100" />
-	
-	<PackageReference Include="FSharp.Core" Version="4.5.2" />
-	<PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
+
+    <PackageReference Include="FSharp.Core" Version="4.6.1" />
+    <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
     <PackageReference Include="SixLabors.ImageSharp" Version="1.0.0-beta0005" />
   </ItemGroup>
   

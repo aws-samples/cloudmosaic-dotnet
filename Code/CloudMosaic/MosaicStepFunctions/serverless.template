@@ -3,14 +3,14 @@
   "Transform" : "AWS::Serverless-2016-10-31",
   "Description" : "An AWS Serverless Application.",
   "Parameters" : {
-		"Stage" : {
+    "Stage" : {
 		    "Type" : "String",
             "Default" : "prod",
             "AllowedValues" : ["gamma", "prod"]
 		}
   },
 
-	"Resources" : {
+  "Resources" : {
 
 
     "CreateColorMapFunction" : {

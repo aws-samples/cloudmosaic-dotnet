@@ -1,5 +1,5 @@
 ﻿using Amazon;
-using Amazon.AspNetCore.Identity.AWSCognito;
+using Amazon.AspNetCore.Identity.Cognito;
 using Amazon.CognitoIdentityProvider;
 using Amazon.CognitoIdentityProvider.Model;
 using Amazon.Extensions.CognitoAuthentication;

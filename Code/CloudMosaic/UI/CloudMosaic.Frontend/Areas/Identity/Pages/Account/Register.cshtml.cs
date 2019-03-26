@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
 
 using Amazon.Extensions.CognitoAuthentication;
-using Amazon.AspNetCore.Identity.AWSCognito;
+using Amazon.AspNetCore.Identity.Cognito;
 
 namespace CloudMosaic.Frontend.Areas.Identity.Pages.Account
 {
@@ -21,20 +21,17 @@ namespace CloudMosaic.Frontend.Areas.Identity.Pages.Account
         private readonly SignInManager<CognitoUser> _signInManager;
         private readonly CognitoUserManager<CognitoUser> _userManager;
         private readonly ILogger<RegisterModel> _logger;
-        //private readonly IEmailSender _emailSender;
         private readonly CognitoUserPool _pool;
 
         public RegisterModel(
             UserManager<CognitoUser> userManager,
             SignInManager<CognitoUser> signInManager,
             ILogger<RegisterModel> logger,
-            //IEmailSender emailSender,
             CognitoUserPool pool)
         {
             _userManager = userManager as CognitoUserManager<CognitoUser>;
             _signInManager = signInManager;
             _logger = logger;
-            //_emailSender = emailSender;
             _pool = pool;
         }
 
@@ -73,28 +70,16 @@ namespace CloudMosaic.Frontend.Areas.Identity.Pages.Account
             if (ModelState.IsValid)
             {
                 var user = _pool.GetUser(Input.Email);
-                user.Attributes.Add(CognitoStandardAttributes.Email, Input.Email);
-                var result = await _userManager.CreateAsync(user, Input.Password).ConfigureAwait(false);
+                user.Attributes.Add(CognitoAttribute.Email.AttributeName, Input.Email);
+
+                var result = await _userManager.CreateAsync(user, Input.Password);
                 if (result.Succeeded)
                 {
                     _logger.LogInformation("User created a new account with password.");
-                    /*
-                    var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-                    var callbackUrl = Url.Page(
-                        "/Account/ConfirmEmail",
-                        pageHandler: null,
-                        values: new { userId = user.Id, code = code },
-                        protocol: Request.Scheme);
-
-                    await _emailSender.SendEmailAsync(Input.Email, "Confirm your email",
-                        $"Please confirm your account by <a href='{HtmlEncoder.Default.Encode(callbackUrl)}'>clicking here</a>.");
 
                     await _signInManager.SignInAsync(user, isPersistent: false);
-                    */
-                    await _userManager.AdminConfirmSignUpAsync(user).ConfigureAwait(false);
-                    await _signInManager.PasswordSignInAsync(Input.Email, Input.Password, false, lockoutOnFailure: false).ConfigureAwait(false);
 
-                    return LocalRedirect(returnUrl);
+                    return RedirectToPage("./ConfirmAccount");
                 }
                 foreach (var error in result.Errors)
                 {

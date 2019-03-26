@@ -52,7 +52,8 @@ namespace CloudMosaic.Frontend
             //    .AddEntityFrameworkStores<ApplicationDbContext>();
 
 
-            services.AddCognitoIdentityProvider(Configuration);
+            services.AddCognitoIdentity();
+
             services.ConfigureApplicationCookie(options =>
             {
                 options.LoginPath = new PathString("/Identity/Account/Login");

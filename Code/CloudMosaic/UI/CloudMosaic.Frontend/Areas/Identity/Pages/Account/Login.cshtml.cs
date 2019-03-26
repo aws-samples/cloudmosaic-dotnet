@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging;
 
 using Amazon.Extensions.CognitoAuthentication;
-using Amazon.AspNetCore.Identity.AWSCognito;
+using Amazon.AspNetCore.Identity.Cognito;
 
 namespace CloudMosaic.Frontend.Areas.Identity.Pages.Account
 {
@@ -74,28 +74,36 @@ namespace CloudMosaic.Frontend.Areas.Identity.Pages.Account
 
             if (ModelState.IsValid)
             {
-                // This doesn't count login failures towards account lockout
-                // To enable password failures to trigger account lockout, set lockoutOnFailure: true
-                var result = await _signInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe, lockoutOnFailure: false).ConfigureAwait(false);
+                var result = await _signInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe, lockoutOnFailure: false);
                 if (result.Succeeded)
                 {
                     _logger.LogInformation("User logged in.");
                     return LocalRedirect(returnUrl);
                 }
-                if (result.RequiresTwoFactor)
+                else if (result.RequiresTwoFactor)
                 {
                     return RedirectToPage("./LoginWith2fa", new { ReturnUrl = returnUrl, RememberMe = Input.RememberMe });
                 }
-                if (result.IsLockedOut)
+                else if (result.IsCognitoSignInResult())
                 {
-                    _logger.LogWarning("User account locked out.");
-                    return RedirectToPage("./Lockout");
+                    if (result is CognitoSignInResult cognitoResult)
+                    {
+                        if (cognitoResult.RequiresPasswordChange)
+                        {
+                            _logger.LogWarning("User password needs to be changed");
+                            return RedirectToPage("./ChangePassword");
+                        }
+                        else if (cognitoResult.RequiresPasswordReset)
+                        {
+                            _logger.LogWarning("User password needs to be reset");
+                            return RedirectToPage("./ResetPassword");
+                        }
+                    }
+
                 }
-                else
-                {
-                    ModelState.AddModelError(string.Empty, "Invalid login attempt.");
-                    return Page();
-                }
+
+                ModelState.AddModelError(string.Empty, "Invalid login attempt.");
+                return Page();
             }
 
             // If we got this far, something failed, redisplay form

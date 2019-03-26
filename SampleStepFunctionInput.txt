@@ -9,7 +9,7 @@ https://mosaic-sources.s3.us-west-2.amazonaws.com/SampleInput.zip?AWSAccessKeyId
 {
   "UserId": "normj@amazon.com",
   "MosaicId": "the-family",
-  "GalleryId": "normj-family-pick",
+  "GalleryId": "normj-family-picks",
   "Bucket": "mosaic-dev-app",
   "TableGalleryItems": "GalleryItem",
   "TableMosaic": "Mosaic",

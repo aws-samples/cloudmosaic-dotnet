@@ -1,0 +1,39 @@
+﻿@page
+@model CloudMosaic.Frontend.Pages.EditGalleryModel
+@{
+    ViewData["Title"] = "Edit Tile Gallery";
+}
+
+<h2>Edit Tile Gallery</h2>
+
+<div asp-validation-summary="All"></div>
+<form method="POST" enctype="multipart/form-data">
+    <div class="row">
+        <div class="col-md-10 form-group">
+            <label class="control-label">Name</label>
+            <input asp-for="Name" class="form-control" />
+        </div>
+        <div class="col-md-10 form-group">
+            <label class="control-label">Attributions</label>
+            <input asp-for="Attributions" class="form-control" />
+        </div>
+        <div class="col-md-10 form-group">
+            <label class="control-label">Is Public</label>
+            <input asp-for="IsPublic" class="form-control" />
+        </div>
+        <div class="col-md-10 form-group">
+            <label class="control-label">Zip file containing additional images for the gallery</label>
+            <input type="file" 
+                   class="form-control form-control-file" 
+                   asp-for="GalleryTilesSource" 
+                   accept=".zip" 
+                   style="height:auto"
+                   />
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-10">
+            <input type="submit" value="Save" class="btn btn-primary" />
+        </div>
+    </div>
+</form>

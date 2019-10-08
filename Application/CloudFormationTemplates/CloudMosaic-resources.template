@@ -1,0 +1,925 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "Stands up resources needed to support the CloudMosaic demo application.",
+
+    "Parameters": {},
+
+    "Resources": {
+
+        "MosaicStorageBucket": {
+            "Type": "AWS::S3::Bucket",
+            "Description": "",
+            "DeletionPolicy": "Retain",
+            "Properties": {}
+        },
+
+        "TableGallery": {
+            "Type": "AWS::DynamoDB::Table",
+            "Description": "",
+            "Properties": {
+                "AttributeDefinitions": [
+                    {
+                        "AttributeName": "UserId",
+                        "AttributeType": "S"
+                    },
+                    {
+                        "AttributeName": "GalleryId",
+                        "AttributeType": "S"
+                    }
+                ],
+                "KeySchema": [
+                    {
+                        "AttributeName": "UserId",
+                        "KeyType": "HASH"
+                    },
+                    {
+                        "AttributeName": "GalleryId",
+                        "KeyType": "RANGE"
+                    }
+                ],
+                "ProvisionedThroughput": {
+                    "ReadCapacityUnits": "10",
+                    "WriteCapacityUnits": "1"
+                },
+                "TableName": {
+                    "Fn::Join": [
+                        "-",
+                        [
+                            {
+                                "Ref": "AWS::StackName"
+                            },
+                            "Gallery"
+                        ]
+                    ]
+                }
+            }
+        },
+
+        "TableGalleryItems": {
+            "Type": "AWS::DynamoDB::Table",
+            "Description": "",
+            "Properties": {
+                "AttributeDefinitions": [
+                    {
+                        "AttributeName": "GalleryId",
+                        "AttributeType": "S"
+                    },
+                    {
+                        "AttributeName": "TileKey",
+                        "AttributeType": "S"
+                    }
+                ],
+                "KeySchema": [
+                    {
+                        "AttributeName": "GalleryId",
+                        "KeyType": "HASH"
+                    },
+                    {
+                        "AttributeName": "TileKey",
+                        "KeyType": "RANGE"
+                    }
+                ],
+                "ProvisionedThroughput": {
+                    "ReadCapacityUnits": "30",
+                    "WriteCapacityUnits": "30"
+                },
+                "TableName": {
+                    "Fn::Join": [
+                        "-",
+                        [
+                            {
+                                "Ref": "AWS::StackName"
+                            },
+                            "GalleryItem"
+                        ]
+                    ]
+                }
+            }
+        },
+
+        "TableMosaic": {
+            "Type": "AWS::DynamoDB::Table",
+            "Description": "",
+            "Properties": {
+                "AttributeDefinitions": [
+                    {
+                        "AttributeName": "UserId",
+                        "AttributeType": "S"
+                    },
+                    {
+                        "AttributeName": "MosaicId",
+                        "AttributeType": "S"
+                    }
+                ],
+                "KeySchema": [
+                    {
+                        "AttributeName": "UserId",
+                        "KeyType": "HASH"
+                    },
+                    {
+                        "AttributeName": "MosaicId",
+                        "KeyType": "RANGE"
+                    }
+                ],
+                "ProvisionedThroughput": {
+                    "ReadCapacityUnits": "5",
+                    "WriteCapacityUnits": "5"
+                },
+                "TableName": {
+                    "Fn::Join": [
+                        "-",
+                        [
+                            {
+                                "Ref": "AWS::StackName"
+                            },
+                            "Mosaic"
+                        ]
+                    ]
+                }
+            }
+        },
+
+        "ZipExpanderConsoleRepository": {
+            "Type": "AWS::ECR::Repository",
+            "Description": "Repository holding the deployed ZipExpanderConsole images.",
+            "Properties": {}
+        },
+
+        "FrontendRepository": {
+            "Type": "AWS::ECR::Repository",
+            "Description": "Repository holding the deployed web application images.",
+            "Properties": {}
+        },
+
+        "MosaicVpc": {
+            "Type": "AWS::EC2::VPC",
+            "Description": "Virtual Private Cloud to hold the running application and resources.",
+            "Properties": {
+                "CidrBlock": "10.0.0.0/16",
+                "Tags" : [
+                    {
+                        "Key" : "Name",
+                        "Value" : {
+                            "Ref": "AWS::StackName"
+                        }
+                    }
+                ]
+            }
+        },
+
+        "SubnetA": {
+            "Type": "AWS::EC2::Subnet",
+            "Description": "Public subnet",
+            "Properties": {
+                "CidrBlock": "10.0.0.0/24",
+                "VpcId": {
+                    "Ref": "MosaicVpc"
+                },
+                "MapPublicIpOnLaunch": "True",
+                "AvailabilityZone": {
+                    "Fn::Select": [
+                        "0",
+                        {
+                            "Fn::GetAZs": ""
+                        }
+                    ]
+                }
+            }
+        },
+
+        "SubnetB": {
+            "Type": "AWS::EC2::Subnet",
+            "Description": "Public subnet",
+            "Properties": {
+                "CidrBlock": "10.0.1.0/24",
+                "VpcId": {
+                    "Ref": "MosaicVpc"
+                },
+                "MapPublicIpOnLaunch": "True",
+                "AvailabilityZone": {
+                    "Fn::Select": [
+                        "1",
+                        {
+                            "Fn::GetAZs": ""
+                        }
+                    ]
+                }
+            }
+        },
+
+        "SubnetC": {
+            "Type": "AWS::EC2::Subnet",
+            "Description": "Public subnet",
+            "Properties": {
+                "CidrBlock": "10.0.2.0/24",
+                "VpcId": {
+                    "Ref": "MosaicVpc"
+                },
+                "MapPublicIpOnLaunch": "True",
+                "AvailabilityZone": {
+                    "Fn::Select": [
+                        "2",
+                        {
+                            "Fn::GetAZs": ""
+                        }
+                    ]
+                }
+            }
+        },
+
+        "BatchSecurityGroup": {
+            "Type": "AWS::EC2::SecurityGroup",
+            "Description": "Security Group for instances launched in the Batch compute environment",
+            "Properties": {
+                "VpcId": {
+                    "Ref": "MosaicVpc"
+                },
+                "GroupDescription": "Security Group for the Batch compute environment"
+            }
+        },
+
+        "InternetGateway": {
+            "Type": "AWS::EC2::InternetGateway",
+            "Description": "Gateway to provides connectivity to and from the internet for the VPC.",
+            "Properties": {}
+        },
+
+        "VPCGatewayAttachment": {
+            "Type": "AWS::EC2::VPCGatewayAttachment",
+            "Description": "Attach the internet gateway resource to the VPC",
+            "Properties": {
+                "VpcId": {
+                    "Ref": "MosaicVpc"
+                },
+                "InternetGatewayId": {
+                    "Ref": "InternetGateway"
+                }
+            }
+        },
+
+        "RouteTable": {
+            "Type": "AWS::EC2::RouteTable",
+            "Description": "Route table for the VPC.",
+            "Properties": {
+                "VpcId": {
+                    "Ref": "MosaicVpc"
+                }
+            }
+        },
+
+        "Route": {
+            "Type": "AWS::EC2::Route",
+            "Description": "Route permitting non-local traffic to egress to the internet from the VPC.",
+            "Properties": {
+                "RouteTableId": {
+                    "Ref": "RouteTable"
+                },
+                "DestinationCidrBlock": "0.0.0.0/0",
+                "GatewayId": {
+                    "Ref": "InternetGateway"
+                }
+            }
+        },
+
+        "SubnetARouteTableAssociation": {
+            "Type": "AWS::EC2::SubnetRouteTableAssociation",
+            "Description": "Route table association to permit traffic in subnet to reach gateway.",
+            "Properties": {
+                "RouteTableId": {
+                    "Ref": "RouteTable"
+                },
+                "SubnetId": {
+                    "Ref": "SubnetA"
+                }
+            }
+        },
+
+        "SubnetBRouteTableAssociation": {
+            "Type": "AWS::EC2::SubnetRouteTableAssociation",
+            "Description": "Route table association to permit traffic in subnet to reach gateway.",
+            "Properties": {
+                "RouteTableId": {
+                    "Ref": "RouteTable"
+                },
+                "SubnetId": {
+                    "Ref": "SubnetB"
+                }
+            }
+        },
+
+        "SubnetCRouteTableAssociation": {
+            "Type": "AWS::EC2::SubnetRouteTableAssociation",
+            "Description": "Route table association to permit traffic in subnet to reach gateway.",
+            "Properties": {
+                "RouteTableId": {
+                    "Ref": "RouteTable"
+                },
+                "SubnetId": {
+                    "Ref": "SubnetC"
+                }
+            }
+        },
+
+        "BatchInstanceProfile": {
+            "Type": "AWS::IAM::InstanceProfile",
+            "Description": "Instance profile referencing the role to be assumed by the Batch compute instances.",
+            "Properties": {
+                "Roles": [
+                    {
+                        "Ref": "BatchRole"
+                    }
+                ]
+            }
+        },
+
+        "BatchRole": {
+            "Type": "AWS::IAM::Role",
+            "Description": "Role permissions for Batch compute instances.",
+            "Properties": {
+                "AssumeRolePolicyDocument": {
+                    "Version": "2008-10-17",
+                    "Statement": [
+                        {
+                            "Sid": "",
+                            "Effect": "Allow",
+                            "Principal": {
+                                "Service": "ec2.amazonaws.com"
+                            },
+                            "Action": "sts:AssumeRole"
+                        }
+                    ]
+                },
+                "ManagedPolicyArns": [
+                    "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role",
+                    "arn:aws:iam::aws:policy/AmazonS3FullAccess",
+                    "arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess",
+                    "arn:aws:iam::aws:policy/AmazonRekognitionFullAccess"
+                ]
+            }
+        },
+
+        "BatchServiceRole": {
+            "Type": "AWS::IAM::Role",
+            "Description": "Service role permitting AWS Batch to access our account resources.",
+            "Properties": {
+                "AssumeRolePolicyDocument": {
+                    "Version": "2008-10-17",
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Principal": {
+                                "Service": "batch.amazonaws.com"
+                            },
+                            "Action": "sts:AssumeRole"
+                        }
+                    ]
+                },
+                "ManagedPolicyArns": [
+                    "arn:aws:iam::aws:policy/service-role/AWSBatchServiceRole"
+                ]
+            }
+        },
+
+        "GalleryComputeEnvironment": {
+            "Type": "AWS::Batch::ComputeEnvironment",
+            "Description": "Declares the resources to be attached to our Batch compute environment(s).",
+            "Properties": {
+                "ComputeResources": {
+                    "InstanceRole": {
+                        "Fn::GetAtt": [
+                            "BatchInstanceProfile",
+                            "Arn"
+                        ]
+                    },
+                    "InstanceTypes": [
+                        "optimal"
+                    ],
+                    "MaxvCpus": "256",
+                    "MinvCpus": "0",
+                    "SecurityGroupIds": [
+                        {
+                            "Ref": "BatchSecurityGroup"
+                        }
+                    ],
+                    "Subnets": [
+                        {
+                            "Ref": "SubnetA"
+                        },
+                        {
+                            "Ref": "SubnetB"
+                        },
+                        {
+                            "Ref": "SubnetC"
+                        }
+                    ],
+                    "Type": "EC2"
+                },
+                "ServiceRole": {
+                    "Ref": "BatchServiceRole"
+                },
+                "Type": "MANAGED"
+            }
+        },
+
+        "ZipExpanderJobQueue": {
+            "Type": "AWS::Batch::JobQueue",
+            "Description": "Queue to hold pending zipfile expansion jobs to be run in the Batch compute environment.",
+            "Properties": {
+                "ComputeEnvironmentOrder": [
+                    {
+                        "ComputeEnvironment": {
+                            "Ref": "GalleryComputeEnvironment"
+                        },
+                        "Order": 1
+                    }
+                ],
+                "Priority": "1",
+                "State": "ENABLED"
+            }
+        },
+
+        "ZipExpanderJobDefinition": {
+            "Type": "AWS::Batch::JobDefinition",
+            "Description": "Declares the container properties for a job to be run in the Batch compute environment.",
+            "Properties": {
+                "ContainerProperties": {
+                    "Image": {
+                        "Fn::Join": [
+                            "",
+                            [
+                                {
+                                    "Ref": "AWS::AccountId"
+                                },
+                                ".dkr.ecr.",
+                                {
+                                    "Ref": "AWS::Region"
+                                },
+                                ".amazonaws.com/",
+                                {
+                                    "Ref": "ZipExpanderConsoleRepository"
+                                },
+                                ":latest"
+                            ]
+                        ]
+                    },
+                    "Memory": "1024",
+                    "Vcpus": "1"
+                },
+                "Type": "container"
+            }
+        },
+
+        "FrontendTaskRole": {
+            "Type": "AWS::IAM::Role",
+            "Description": "Role permissions to be used by instances surfacing the web application.",
+            "Properties": {
+                "AssumeRolePolicyDocument": {
+                    "Version": "2008-10-17",
+                    "Statement": [
+                        {
+                            "Sid": "",
+                            "Effect": "Allow",
+                            "Principal": {
+                                "Service": "ecs-tasks.amazonaws.com"
+                            },
+                            "Action": "sts:AssumeRole"
+                        }
+                    ]
+                },
+                "ManagedPolicyArns": [
+                    "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role",
+                    "arn:aws:iam::aws:policy/AmazonS3FullAccess",
+                    "arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess",
+                    "arn:aws:iam::aws:policy/AWSBatchFullAccess",
+                    "arn:aws:iam::aws:policy/AmazonSSMReadOnlyAccess",
+                    "arn:aws:iam::aws:policy/CloudWatchLogsFullAccess",
+                    "arn:aws:iam::aws:policy/AWSStepFunctionsFullAccess",
+                    "arn:aws:iam::aws:policy/AmazonCognitoPowerUser"
+                ],
+                "Policies": [ 
+                    {
+                        "PolicyName": "PutDataProtectionParameter",
+                        "PolicyDocument": {
+                            "Version" : "2012-10-17",
+                            "Statement": [ 
+                                {
+                                    "Effect": "Allow",
+                                    "Action": "ssm:PutParameter",
+                                    "Resource": "arn:aws:ssm:*:*:parameter/CloudMosaic/DataProtection/*"
+                                } 
+                            ]
+                        }
+                    } 
+                ]
+            }
+        },
+
+        "FrontendExecutionRole": {
+            "Type": "AWS::IAM::Role",
+            "Description": "",
+            "Properties": {
+                "AssumeRolePolicyDocument": {
+                    "Version": "2008-10-17",
+                    "Statement": [
+                        {
+                            "Sid": "",
+                            "Effect": "Allow",
+                            "Principal": {
+                                "Service": "ecs-tasks.amazonaws.com"
+                            },
+                            "Action": "sts:AssumeRole"
+                        }
+                    ]
+                },
+                "ManagedPolicyArns": [
+                    "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly",
+                    "arn:aws:iam::aws:policy/CloudWatchLogsFullAccess"
+                ]
+            }
+        },
+
+        "ECSSecurityGroup": {
+            "Type": "AWS::EC2::SecurityGroup",
+            "Description": "Security group controlling access to the containers surfacing our web application front end.",
+            "Properties": {
+                "VpcId": {
+                    "Ref": "MosaicVpc"
+                },
+                "GroupDescription": "Security Group for the ECS Service",
+                "SecurityGroupIngress": [
+                    {
+                        "CidrIp": "0.0.0.0/0",
+                        "FromPort": "80",
+                        "ToPort": "80",
+                        "IpProtocol": "tcp"
+                    }
+                ]
+            }
+        },
+
+        "FrontendCluster": {
+            "Type": "AWS::ECS::Cluster",
+            "Description": "",
+            "Properties": {
+                "ClusterName": {
+                    "Fn::Join": [
+                        "-",
+                        [
+                            {
+                                "Ref": "AWS::StackName"
+                            },
+                            "Frontend"
+                        ]
+                    ]
+                }
+            }
+        },
+
+        "LoadBalancer": {
+            "Type": "AWS::ElasticLoadBalancingV2::LoadBalancer",
+            "Description": "",
+            "Properties": {
+                "Type": "application",
+                "IpAddressType": "ipv4",
+                "Scheme": "internet-facing",
+                "SecurityGroups": [
+                    {
+                        "Ref": "ECSSecurityGroup"
+                    }
+                ],
+                "Subnets": [
+                    {
+                        "Ref": "SubnetA"
+                    },
+                    {
+                        "Ref": "SubnetB"
+                    },
+                    {
+                        "Ref": "SubnetC"
+                    }
+                ]
+            }
+        },
+
+        "HttpListener": {
+            "Type": "AWS::ElasticLoadBalancingV2::Listener",
+            "Description": "",
+            "Properties": {
+                "DefaultActions": [
+                    {
+                        "TargetGroupArn": {
+                            "Ref": "DefaultTargetGroup"
+                        },
+                        "Type": "forward"
+                    }
+                ],
+                "LoadBalancerArn": {
+                    "Ref": "LoadBalancer"
+                },
+                "Port": "80",
+                "Protocol": "HTTP"
+            }
+        },
+
+        "DefaultTargetGroup": {
+            "Type": "AWS::ElasticLoadBalancingV2::TargetGroup",
+            "Description": "",
+            "Properties": {
+                "Port": "80",
+                "Protocol": "HTTP",
+                "TargetGroupAttributes": [],
+                "Targets": [],
+                "VpcId": {
+                    "Ref": "MosaicVpc"
+                },
+                "TargetType": "ip"
+            }
+        },
+
+        "ParameterMosaicStorageBucket": {
+            "Type": "AWS::SSM::Parameter",
+            "Description": "Stores the name of the S3 storage bucket to Parameter Store.",
+            "Properties": {
+                "Type": "String",
+                "Value": {
+                    "Ref": "MosaicStorageBucket"
+                },
+                "Name": "/CloudMosaic/AppOptions/MosaicStorageBucket"
+            }
+        },
+
+        "ParameterTableGallery": {
+            "Type": "AWS::SSM::Parameter",
+            "Description": "Stores the name of the DynamoDB table holding details of processed galleries to Parameter Store.",
+            "Properties": {
+                "Type": "String",
+                "Value": {
+                    "Ref": "TableGallery"
+                },
+                "Name": "/CloudMosaic/AppOptions/TableGallery"
+            }
+        },
+
+        "ParameterTableGalleryItems": {
+            "Type": "AWS::SSM::Parameter",
+            "Description": "Stores the name of the DynamoDB table holding gallery items to Parameter Store.",
+            "Properties": {
+                "Type": "String",
+                "Value": {
+                    "Ref": "TableGalleryItems"
+                },
+                "Name": "/CloudMosaic/AppOptions/TableGalleryItems"
+            }
+        },
+
+        "ParameterTableMosaic": {
+            "Type": "AWS::SSM::Parameter",
+            "Description": "Stores the name of the DynamoDB mosaic table to Parameter Store.",
+            "Properties": {
+                "Type": "String",
+                "Value": {
+                    "Ref": "TableMosaic"
+                },
+                "Name": "/CloudMosaic/AppOptions/TableMosaic"
+            }
+        },
+
+        "ParameterJobQueueArn": {
+            "Type": "AWS::SSM::Parameter",
+            "Description": "Stores the ARN of the SQS queue, to which zip expansion job requests will be posted, into Parameter Store.",
+            "Properties": {
+                "Type": "String",
+                "Value": {
+                    "Ref": "ZipExpanderJobQueue"
+                },
+                "Name": "/CloudMosaic/AppOptions/JobQueueArn"
+            }
+        },
+
+        "ParameterJobDefinitionArn": {
+            "Type": "AWS::SSM::Parameter",
+            "Description": "Stores the ARN of the job definition created for zip file expansion into Parameter Store.",
+            "Properties": {
+                "Type": "String",
+                "Value": {
+                    "Ref": "ZipExpanderJobDefinition"
+                },
+                "Name": "/CloudMosaic/AppOptions/JobDefinitionArn"
+            }
+        },
+
+        "ParameterZipExpanderConsoleRepository": {
+            "Type": "AWS::SSM::Parameter",
+            "Description": "Stores the url to the repository containing zip expander images into Parameter Store.",
+            "Properties": {
+                "Type": "String",
+                "Value": {
+                    "Fn::Join": [
+                        "",
+                        [
+                            {
+                                "Ref": "AWS::AccountId"
+                            },
+                            ".dkr.ecr.",
+                            {
+                                "Ref": "AWS::Region"
+                            },
+                            ".amazonaws.com/",
+                            {
+                                "Ref": "ZipExpanderConsoleRepository"
+                            },
+                            ":latest"
+                        ]
+                    ]
+                },
+                "Name": "/CloudMosaic/ZipExpanderConsoleRepository"
+            }
+        },
+
+        "ParameterZipExpanderConsoleTag": {
+            "Type": "AWS::SSM::Parameter",
+            "Description": "",
+            "Properties": {
+                "Type": "String",
+                "Value": {
+                    "Fn::Join" : [
+                        "", [
+                            { "Ref": "ZipExpanderConsoleRepository" },
+                            ":latest"
+                        ]
+                    ]
+                },
+                "Name": "/CloudMosaic/ZipExpanderConsoleTag"
+            }
+        },
+
+        "ParameterECSSecurityGroup": {
+            "Type": "AWS::SSM::Parameter",
+            "Description": "Stores the ID of the security group for our Fargate instances into Parameter Store",
+            "Properties": {
+                "Type": "String",
+                "Value": {
+                    "Ref": "ECSSecurityGroup"
+                },
+                "Name": "/CloudMosaic/ECSSecurityGroup"
+            }
+        },
+
+        "ParameterSubnetA": {
+            "Type": "AWS::SSM::Parameter",
+            "Description": "Stores the ID of a one of our subnets for our Fargate instances into Parameter Store.",
+            "Properties": {
+                "Type": "String",
+                "Value": {
+                    "Ref": "SubnetA"
+                },
+                "Name": "/CloudMosaic/SubnetA"
+            }
+        },
+
+        "ParameterSubnetB": {
+            "Type": "AWS::SSM::Parameter",
+            "Description": "Stores the ID of a one of our subnets for our Fargate instances into Parameter Store.",
+            "Properties": {
+                "Type": "String",
+                "Value": {
+                    "Ref": "SubnetB"
+                },
+                "Name": "/CloudMosaic/SubnetB"
+            }
+        },
+
+        "ParameterSubnetC": {
+            "Type": "AWS::SSM::Parameter",
+            "Description": "Stores the ID of a one of our subnets for our Fargate instances into Parameter Store.",
+            "Properties": {
+                "Type": "String",
+                "Value": {
+                    "Ref": "SubnetC"
+                },
+                "Name": "/CloudMosaic/SubnetC"
+            }
+        },
+
+        "ParameterFrontendCluster": {
+            "Type": "AWS::SSM::Parameter",
+            "Description": "Stores the ID of the cluster defined for our Fargate instances into Parameter Store.",
+            "Properties": {
+                "Type": "String",
+                "Value": {
+                    "Ref": "FrontendCluster"
+                },
+                "Name": "/CloudMosaic/FrontendCluster"
+            }
+        },
+
+        "ParameterFrontendRepository": {
+            "Type": "AWS::SSM::Parameter",
+            "Description": "Stores the url of the repository holding container images of our web application front end into Parameter Store.",
+            "Properties": {
+                "Type": "String",
+                "Value": {
+                    "Fn::Join": [
+                        "",
+                        [
+                            {
+                                "Ref": "AWS::AccountId"
+                            },
+                            ".dkr.ecr.",
+                            {
+                                "Ref": "AWS::Region"
+                            },
+                            ".amazonaws.com/",
+                            {
+                                "Ref": "FrontendRepository"
+                            },
+                            ":latest"
+                        ]
+                    ]
+                },
+                "Name": "/CloudMosaic/FrontendRepository"
+            }
+        },
+
+        "ParameterFrontendTag": {
+            "Type": "AWS::SSM::Parameter",
+            "Description": "",
+            "Properties": {
+                "Type": "String",
+                "Value": {
+                    "Fn::Join" : [
+                        "", [
+                            { "Ref": "FrontendRepository" },
+                            ":latest"
+                        ]
+                    ]
+                },
+                "Name": "/CloudMosaic/FrontendTag"
+            }
+        },
+
+        "ParameterFrontendExecutionRole": {
+            "Type": "AWS::SSM::Parameter",
+            "Description": "Store the ARN of the role created for instance(s) surfacing our web application front end into Parameter Store.",
+            "Properties": {
+                "Type": "String",
+                "Value": {
+                    "Ref": "FrontendExecutionRole"
+                },
+                "Name": "/CloudMosaic/FrontendExecutionRole"
+            }
+        },
+
+        "ParameterFrontendTaskRole": {
+            "Type": "AWS::SSM::Parameter",
+            "Description": "",
+            "Properties": {
+                "Type": "String",
+                "Value": {
+                    "Ref": "FrontendTaskRole"
+                },
+                "Name": "/CloudMosaic/FrontendTaskRole"
+            }
+        },
+
+        "ParameterLoadBalancerName": {
+            "Type": "AWS::SSM::Parameter",
+            "Description": "",
+            "Properties": {
+                "Type": "String",
+                "Value": {
+                    "Ref": "LoadBalancer"
+                },
+                "Name": "/CloudMosaic/LoadBalancerName"
+            }
+        },
+
+        "ParameterTargetGroupArn": {
+            "Type": "AWS::SSM::Parameter",
+            "Description": "",
+            "Properties": {
+                "Type": "String",
+                "Value": {
+                    "Ref": "DefaultTargetGroup"
+                },
+                "Name": "/CloudMosaic/TargetGroupArn"
+            }
+        }
+    },
+
+    "Outputs": {
+        "JobDefinitionArn": {
+            "Description": "",
+            "Value": {
+                "Ref": "ZipExpanderJobDefinition"
+            }
+        },
+
+        "JobQueueArn": {
+            "Description": "",
+            "Value": {
+                "Ref": "ZipExpanderJobQueue"
+            }
+        }
+    }
+}

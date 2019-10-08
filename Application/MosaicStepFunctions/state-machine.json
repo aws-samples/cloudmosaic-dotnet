@@ -1,0 +1,52 @@
+{
+  "Comment": "CloudMosaic State Machine",
+  "StartAt": "CreateColorMap",
+  "States": {
+    "CreateColorMap": {
+      "Type": "Task",
+      "Resource": "${CreateColorMapFunction.Arn}",
+      "Next": "DetermineBestImages"
+    },
+    "DetermineBestImages": {
+      "Type": "Task",
+      "Resource": "${DetermineBestImagesFunction.Arn}",
+      "Next": "ChooseRenderer"
+    },
+    "ChooseRenderer" : {
+      "Type": "Choice",
+      "Choices" : [
+        {
+          "Variable": "$.OriginalImagePixelCount",
+          "NumericLessThan": 480000,
+          "Next": "RenderMosaicSmall"
+        },
+        {
+          "Variable": "$.OriginalImagePixelCount",
+          "NumericLessThan": 1920000,
+          "Next": "RenderMosaicMedium"
+        }
+      ],
+      "Default" : "RenderMosaicLarge"
+    },
+    "RenderMosaicSmall": {
+      "Type": "Task",
+      "Resource": "${RenderMosaicSmallFunction.Arn}",
+      "Next": "NotifyCompletion"
+    },
+    "RenderMosaicMedium": {
+      "Type": "Task",
+      "Resource": "${RenderMosaicMediumFunction.Arn}",
+      "Next": "NotifyCompletion"
+    },
+    "RenderMosaicLarge": {
+      "Type": "Task",
+      "Resource": "${RenderMosaicLargeFunction.Arn}",
+      "Next": "NotifyCompletion"
+    },
+    "NotifyCompletion": {
+      "Type": "Task",
+      "Resource": "${NotifyCompletionFunction.Arn}",
+      "End": true
+    }
+  }
+}

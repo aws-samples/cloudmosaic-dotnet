@@ -1,0 +1,242 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Transform": "AWS::Serverless-2016-10-31",
+    "Description": "Defines an AWS Step Functions state machine, together with the Lambda functions used as tasks when the state machine runs. See state-machine.json for the actual machine definition.",
+
+    "Parameters": {
+    },
+
+    "Resources": {
+
+        "CreateColorMapFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Description" : "",
+            "Properties": {
+                "Handler": "CreateColorMapFunction::CreateColorMapFunction.Function::FunctionHandler",
+                "Role": {
+                    "Fn::GetAtt": [
+                        "LambdaRole",
+                        "Arn"
+                    ]
+                },
+                "Runtime": "dotnetcore2.1",
+                "MemorySize": 512,
+                "Timeout": 60,
+                "Code": {
+                    "S3Bucket": "",
+                    "S3Key": "./CreateColorMapFunction"
+                }
+            }
+        },
+
+        "DetermineBestImagesFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Description" : "",
+            "Properties": {
+                "Handler": "DetermineBestImagesFunction::DetermineBestImagesFunction::FunctionHandler",
+                "Role": {
+                    "Fn::GetAtt": [
+                        "LambdaRole",
+                        "Arn"
+                    ]
+                },
+                "Runtime": "dotnetcore2.1",
+                "MemorySize": 512,
+                "Timeout": 600,
+                "Code": {
+                    "S3Bucket": "",
+                    "S3Key": "./DetermineBestImagesFunction"
+                }
+            }
+        },
+
+        "RenderMosaicSmallFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Description" : "",
+            "Properties": {
+                "Handler": "RenderMosaicFunction::RenderMosaicFunction.Function::FunctionHandler",
+                "Role": {
+                    "Fn::GetAtt": [
+                        "LambdaRole",
+                        "Arn"
+                    ]
+                },
+                "Runtime": "dotnetcore2.1",
+                "MemorySize": 1024,
+                "Timeout": 600,
+                "Code": {
+                    "S3Bucket": "",
+                    "S3Key": "./RenderMosaicFunction"
+                }
+            }
+        },
+
+        "RenderMosaicMediumFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Description" : "",
+            "Properties": {
+                "Handler": "RenderMosaicFunction::RenderMosaicFunction.Function::FunctionHandler",
+                "Role": {
+                    "Fn::GetAtt": [
+                        "LambdaRole",
+                        "Arn"
+                    ]
+                },
+                "Runtime": "dotnetcore2.1",
+                "MemorySize": 2048,
+                "Timeout": 600,
+                "Code": {
+                    "S3Bucket": "",
+                    "S3Key": "./RenderMosaicFunction"
+                }
+            }
+        },
+
+        "RenderMosaicLargeFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Description" : "",
+            "Properties": {
+                "Handler": "RenderMosaicFunction::RenderMosaicFunction.Function::FunctionHandler",
+                "Role": {
+                    "Fn::GetAtt": [
+                        "LambdaRole",
+                        "Arn"
+                    ]
+                },
+                "Runtime": "dotnetcore2.1",
+                "MemorySize": 3008,
+                "Timeout": 600,
+                "Code": {
+                    "S3Bucket": "",
+                    "S3Key": "./RenderMosaicFunction"
+                }
+            }
+        },
+
+        "NotifyCompletionFunction": {
+            "Type": "AWS::Lambda::Function",
+            "Description" : "",
+            "Properties": {
+                "Handler": "NotifyCompletionFunction::NotifyCompletionFunction.Function::FunctionHandler",
+                "Role": {
+                    "Fn::GetAtt": [
+                        "LambdaRole",
+                        "Arn"
+                    ]
+                },
+                "Runtime": "dotnetcore2.1",
+                "MemorySize": 128,
+                "Timeout": 30,
+                "Code": {
+                    "S3Bucket": "",
+                    "S3Key": "./NotifyCompletionFunction"
+                }
+            }
+        },
+
+        "StateMachine": {
+            "Type": "AWS::StepFunctions::StateMachine",
+            "Description" : "",
+            "Properties": {
+                "RoleArn": {
+                    "Fn::GetAtt": [
+                        "StateMachineRole",
+                        "Arn"
+                    ]
+                },
+                "DefinitionString": {
+                    "Fn::Sub": ""
+                }
+            }
+        },
+
+        "LambdaRole": {
+            "Type": "AWS::IAM::Role",
+            "Description" : "",
+            "Properties": {
+                "AssumeRolePolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Action": [
+                                "sts:AssumeRole"
+                            ],
+                            "Effect": "Allow",
+                            "Principal": {
+                                "Service": [
+                                    "lambda.amazonaws.com"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                "ManagedPolicyArns": [
+                    "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
+                    "arn:aws:iam::aws:policy/AmazonS3FullAccess",
+                    "arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess"
+                ]
+            }
+        },
+
+        "StateMachineRole": {
+            "Type": "AWS::IAM::Role",
+            "Description" : "",
+            "Properties": {
+                "AssumeRolePolicyDocument": {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Principal": {
+                                "Service": {
+                                    "Fn::Sub": "states.${AWS::Region}.amazonaws.com"
+                                }
+                            },
+                            "Action": "sts:AssumeRole"
+                        }
+                    ]
+                },
+                "Policies": [
+                    {
+                        "PolicyName": "StepFunctionLambdaInvoke",
+                        "PolicyDocument": {
+                            "Version": "2012-10-17",
+                            "Statement": [
+                                {
+                                    "Effect": "Allow",
+                                    "Action": [
+                                        "lambda:InvokeFunction"
+                                    ],
+                                    "Resource": "*"
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        },
+
+        "ParameterStateMachineArn": {
+            "Type": "AWS::SSM::Parameter",
+            "Description" : "",
+            "Properties": {
+                "Type": "String",
+                "Value": {
+                    "Ref": "StateMachine"
+                },
+                "Name": "/CloudMosaic/AppOptions/StateMachineArn"
+            }
+        }
+    },
+
+    "Outputs": {
+
+        "StateMachineArn": {
+			"Description" : "",
+            "Value": {
+                "Ref": "StateMachine"
+            }
+        }
+
+    }
+}

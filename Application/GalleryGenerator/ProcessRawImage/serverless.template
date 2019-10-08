@@ -1,0 +1,57 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Transform": "AWS::Serverless-2016-10-31",
+    "Description": "Creates a Lambda function to be invoked when images are uploaded to an S3 bucket, converting them into tile gallery items. The configuration of the event notification is done as part of the demo but could also be handled by editing the Events settings of the function in this template.",
+
+    "Parameters": {
+        "TableGalleryItems": {
+            "Type": "String",
+            "Default": "CloudMosaic-GalleryItem"
+        }
+    },
+
+    "Resources": {
+
+        "ProcessRawImageFunctionDLQ": {
+            "Type": "AWS::SQS::Queue",
+            "Description": "Creates a dead letter queue to which failed Lambda function invocations will be posted. You can use this in conjunction with the mock .NET Lambda test tool in Visual Studio, Visual Studio Code or Visual Studio for Mac to debug the failed invocation locally with the same inputs.",
+            "Properties": {}
+        },
+
+        "ProcessRawImageFunction": {
+            "Type": "AWS::Serverless::Function",
+            "Description": "Defines a serverless function for Lamba using the .NET Core runtime.",
+            "Properties": {
+                "Handler": "ProcessRawImage::ProcessRawImage.Function::FunctionHandler",
+                "Runtime": "dotnetcore2.1",
+                "CodeUri": "",
+                "Description": "Default function",
+                "MemorySize": 512,
+                "Timeout": 60,
+                "Role": null,
+                "Policies": [
+                    "AWSLambdaFullAccess",
+                    "AmazonRekognitionReadOnlyAccess"
+                ],
+                "Tracing": "Active",
+                "Environment": {
+                    "Variables": {
+                        "TableGalleryItems": {
+                            "Ref": "TableGalleryItems"
+                        }
+                    }
+                },
+                "DeadLetterQueue": {
+                    "Type": "SQS",
+                    "TargetArn": {
+                        "Fn::GetAtt": [
+                            "ProcessRawImageFunctionDLQ",
+                            "Arn"
+                        ]
+                    }
+                },
+                "Events": {}
+            }
+        }
+    }
+}

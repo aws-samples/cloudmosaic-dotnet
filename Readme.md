@@ -4,6 +4,8 @@ This guide presents the CloudMosaic serverless demo application first shown in t
 
 > Note: the CI/CD content from the original re:Invent session is not currently discussed in this sample but the necessary AWS CodeBuild files have been retained alongside the code assets for reference.
 
+![Application](media/splash.png)
+
 ## Prerequisite installations
 
 To perform the steps in this guide on Windows, macOS or Linux we recommend you install the following software before starting:

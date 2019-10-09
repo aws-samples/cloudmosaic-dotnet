@@ -74,7 +74,7 @@ With the AWS tools installed and a new user created in your account with program
 
 1. Start Visual Studio. If this is the first time launching Visual Studio after installing the AWS toolkit and no other credential profiles exist on your system it will display the *AWS Getting Started* view inviting you to add credentials.
 
-    ![Getting Started View](media/VSGettingStartedView.png)
+    ![Getting Started View](media/1-VSGettingStartedView.png)
 
     > Note: If the *AWS Getting Started* view does not display (for whatever reason) you can still add a new credential profile using the *AWS Explorer* window, as follows:
 
@@ -82,11 +82,11 @@ With the AWS tools installed and a new user created in your account with program
     1. Click the **New account profile** button to the right of the **Profile** field (the first button in the set of three).
     1. The *New Account Profile* dialog is displayed, as shown:
 
-        ![New Account Profile](media/VSNewAccountProfile.png)
+        ![New Account Profile](media/1-VSNewAccountProfile.png)
     1. You can now resume with the instructions below which apply to either window.
 
-1. Enter a name for the credential profile. This can be the same name as the IAM user you created or you can use **default**, as suggested in the dialog.
-    > Note: if you elect to use a custom name you will need to specify the profile name when using the dotnet CLI extensions in later modules using the *--profile* option.
+1. Enter a name for the credential profile. This can be the same name as the IAM user you created or you can use **default**, as suggested in the dialog. If you use the name *default* the tools will locate and use it automatically if no other credential profile is specified.
+    > Note: if you elect to use a custom name you will need to specify the profile name when using the dotnet CLI extensions in later modules using the *--profile* option. All instructions and screenshots in this guide assume you have named your credential profile *default*.
 1. Click the *Import from csv file* button, navigate to the csv file you downloaded in the previous step and select it before clicking *OK* to close the dialog.
 1. The access and secret access keys for the user will be loaded into the view.
 1. You may leave the **Account Number** blank if you wish. For all standard public AWS accounts leave the **Account Type** field at *Standard AWS Account*. If you are using an AWS GovCloud account, or are in the AWS China region, select the correct account type in the field.
@@ -124,8 +124,14 @@ If you have either the [AWS Tools for PowerShell](https://aws.amazon.com/powersh
 1. Open a PowerShell command prompt.
 1. If you have the [AWSPowerShell](https://www.powershellgallery.com/packages/AWSPowerShell/) or [AWSPowerShell.NetCore](https://www.powershellgallery.com/packages/AWSPowerShell.NetCore/) modules installed, first import the relevant module with the command
 
+    > Note: to install either module from the PowerShell Gallery use the Install-Module command.
+
     ```powershell
-    PS C:\> Import-Module AWSPowerShell # or AWSPowerShell.NetCore
+    # Use this module and command for Windows PowerShell v2-v5.1
+    PS C:\> Import-Module AWSPowerShell
+    # Use this module and command for AWSPowerShell.NetCore on Windows (PowerShell v3-v5.1),
+    # or PowerShell 6+ on Windows, Linux, or macOS
+    PS C:\> Import-Module AWSPowerShell.NetCore
     ```
 
     > Note: if you are using the [new preview of the tools](https://aws.amazon.com/blogs/aws/preview-release-of-the-new-aws-tools-for-powershell/), you do not need to import a module first.

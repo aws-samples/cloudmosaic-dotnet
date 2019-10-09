@@ -6,7 +6,7 @@ This guide presents the CloudMosaic serverless demo application first shown in t
 
 ![Application](media/splash.png)
 
-CloudMosaic is an application that enables registered and signed-in users to create mosaicked images.A mosaicked image is one in which blocks of pixels in the original source image are replaced by smaller image tiles, selected from a user-specified tile gallery. Users can upload zip files containing images to be processed and used as tiles in galleries. When a user zooms into a mosaicked image they can see the individual tile images that make up the mosaic.
+CloudMosaic is an application that enables registered and signed-in users to create mosaicked images. A mosaicked image is one in which blocks of pixels in the original source image are replaced by smaller image tiles, selected from a user-specified tile gallery. Users can upload zip files containing images to be processed and used as tiles in galleries. When a user zooms into a mosaicked image they can see the individual tile images that make up the mosaic.
 
 The sample illustrates modern, serverless, .NET Core applications on [AWS](https://aws.amazon.com/). It uses the [AWS SDK for .NET](https://docs.aws.amazon.com/sdk-for-net/) to work with AWS services from within application code, as well as [tools from AWS](https://aws.amazon.com/developer/language/net/tools/) to integrate with Visual Studio (on Windows) and the dotnet CLI (on Windows, macOS, and Linux) to make working with serverless application development on AWS easy and convenient.
 

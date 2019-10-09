@@ -1,5 +1,9 @@
 # Module 4: Image to Mosaic Workflow
 
+Mosaic rendering uses an AWS Step Functions workflow to coordinate several AWS Lambda functions to process an input image and selected tile gallery to create a mosaicked image. The architecture of the mosaic rendering workflow is shown below.
+
+![Mosaic rendering architecture](media/4-Architecture.png)
+
 Projects and other files for the Mosaic Workflow subsystem can be found under the *MosaicStepFunctions* solution folder.
 
 * The *serverless.template* file defines the Lambda functions making up the state machine (as tasks) and also the state machine itself, however the definition entry for the state machine is intentionally blank. The code reference for each Lambda function is a relative reference to the subproject containing the function handler.

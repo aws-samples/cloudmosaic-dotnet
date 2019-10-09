@@ -2,6 +2,10 @@
 
 The steps in this module walk you through deploying and testing the tile ingestion subsystem. This subsystem enables the user to supply a zip file containing images to be used as tiles when creating a mosaic. An AWS Batch job expands the zip file and uploads each image in the file to an Amazon S3 bucket (created as part of module 2). An AWS Lambda function is triggered by each upload to validate and process the image files to make them suitable to use as tiles in a mosaic.
 
+The architecture for this subsystem is shown below.
+
+![Tile gallery architecture](media/3-Architecture.png)
+
 * Tile ingestion is not a time-critical task and using AWS Batch gives us flexibility to choose appropriate compute resources, for example:
   * We could use spot instances to do the work when compute becomes available at a cost we define.
   * We could enable paying customers to get access to more powerful (and on-demand) compute resources.
@@ -75,7 +79,7 @@ The *ProcessRawImage* project is an AWS Lambda function, written in C#, to accom
     ![Publish ProcessRawImage page 1](media/3-PublishProcessRawImage1.png)
 
     1. Click **Next**
-    1. Make sure to set the *TableGalleryItems* parameter to *CloudMosaic-GalleryItem* to match template naming of ***StackName*-GalleryItem** (the *StackName* value is the name of the stack you created in the pre-requisites section).
+    1. Make sure to set the *TableGalleryItems* parameter to *CloudMosaic-GalleryItem* to match template naming of ***StackName*-GalleryItem** (the *StackName* value is the name of the stack you created using the CloudFormation template in module 2).
 
     ![Publish ProcessRawImage page 2](media/3-PublishProcessRawImage2.png)
 
@@ -90,7 +94,7 @@ When the deployment has completed and status reads **CREATE-COMPLETE**, the next
 1. For *S3 Bucket* choose the bucket created by the template (name will be similar to *cloudmosaic-mosaicstoragebucket-RANDOM*)
 1. Enter **Galleries/Raw** in the *Prefix* field.
 
-    ![Configure event source](3-EventSource.zip)
+    ![Configure event source](media/3-EventSource.png)
 
 1. Click OK
 

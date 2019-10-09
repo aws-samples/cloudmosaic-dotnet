@@ -4,9 +4,13 @@ In this module you will deploy the web application front-end using AWS Fargate (
 
 The web front-end demonstrates the following integration with AWS:
 
-* using the [AWS extension library](https://github.com/aws/aws-dotnet-extensions-configuration) to retrieve runtime configuration settings from Parameter Store instead of appsettings.json.
-* replacing the default SQL Server identity setup with a Cognito User Pool and use of an [AWS extension library](https://github.com/aws/aws-aspnet-cognito-identity-provider) to coordinate user registration and login activities.
-* persisting the anti-forgery token injected into ASP.NET Core views to AWS Systems Manager's Parameter Store using another [AWS extension library](https://github.com/aws/aws-ssm-data-protection-provider-for-aspnet).
+* using the [Amazon.Extensions.Configuration.SystemsManager](https://github.com/aws/aws-dotnet-extensions-configuration) NuGet package to retrieve runtime configuration settings from Parameter Store instead of appsettings.json.
+* replacing the default SQL Server identity setup with a Cognito User Pool and use of the [Amazon.AspNetCore.Identity.Cognito](https://github.com/aws/aws-aspnet-cognito-identity-provider) NuGet package to coordinate user registration and login activities.
+* persisting the anti-forgery token injected into ASP.NET Core views to AWS Systems Manager's Parameter Store using the[Amazon.AspNetCore.DataProtection.SSM](https://github.com/aws/aws-ssm-data-protection-provider-for-aspnet) NuGet package.
+
+The architecture for the web front-end can be seen below.
+
+![Web front-end architecture](media/5-Architecture.png)
 
 The project for the web front-end can be found in the *UI* solution folder.
 

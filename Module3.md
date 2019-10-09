@@ -41,14 +41,14 @@ The *ZipExpanderConsole* project in the solution is a simple .NET Core console a
     dotnet tool install -g Amazon.ECS.Tools
     ```
 
-1. Edit the *aws-ecs-tools-defaults.json* file in the project to reference the correct tag to identify the repository and other resources for the deployment, for example:
+1. Edit the *aws-ecs-tools-defaults.json* file in the project to set the correct tag value identifying the repository and other resources for the deployment. In the example below, replace the value of the key *tag* with the correct value, which you can obtain from the resources created in the CloudFormation stack you deployed in module 2.
 
     ```json
     {
         "region" : "us-west-2",
         "profile" : "default",
         "configuration" : "Release",
-        "tag" : "cloud-zipex-1hueyqmz0hb2r:latest",
+        "tag" : "cloud-zipex-EDIT-ME:latest",
         "task-definition-name" : "",
         "task-cpu"             : "512",
         "task-memory"          : "1024",
@@ -175,4 +175,4 @@ To support these steps the repository contains a small collection of solid color
 
 > Note: there is no 'done' notification from either the Batch job or the Lambda function. Wait until the job is listed under *succeeded* on the job console before proceeding to satisfy yourself that the ingestion process is working correctly.
 
-***You have now completed this module and can move onto the next.***
+***You have now completed this module and can move onto [module 4](./Module4.md).***

@@ -56,24 +56,32 @@ After the wizard completes the toolkit will open a view onto the cluster. Click 
 The global Amazon.ECS.Tools package was installed in module 3 and we will re-use it's commands here to publish our web application to AWS Fargate.
 
 1. Open a command shell and cd to the *./Application/UI/CloudMosaic.FrontEnd* folder.
-1. Edit the *aws-ecs-tools-defaults.json* file to set the resources to be referenced during deployment. These resources were created by the CloudFormation stack you deployed to in module 2. For example:
+1. Edit the *aws-ecs-tools-defaults.json* file to set the resources to be referenced during deployment. These resources were created by the CloudFormation stack you deployed to in module 2. In the example below you need to replace the values for the following keys:
+
+  * tag
+  * launch-subnets
+  * launch-security-groups
+  * task-definition-task-role
+  * task-execution-role
+  * task-execution-role
+  * elb-target-group
 
     ```json
     {
         "region" : "us-west-2",
         "profile" : "default",
         "configuration" : "Release",
-        "tag"           : "cloud-front-64lvd3e0phlw:latest",
+        "tag"           : "cloud-front-EDIT-ME:latest",
         "cluster"       : "CloudMosaic-Frontend",
         "launch-type"   : "FARGATE",
-        "launch-subnets" : "subnet-08d5329a5bdad4c6f,subnet-0a70b7213f2ddc1ed",
-        "launch-security-groups" : "sg-0febef5aee5d0c337",
+        "launch-subnets" : "subnet-id-1-EDIT-ME,subnet-id-2-EDIT-ME",
+        "launch-security-groups" : "sg-EDIT-ME",
         "assign-public-ip"       : true,
         "task-definition-name"   : "CloudMosaicFrontend",
         "task-cpu"               : "256",
         "task-memory"            : "512",
-        "task-definition-task-role" : "arn:aws:iam::939934531084:role/CloudMosaic-FrontendTaskRole-ZRVIQA6M8M2N",
-        "task-execution-role"       : "CloudMosaic-FrontendExecutionRole-1VGSRMQ8WTV68",
+        "task-definition-task-role" : "arn:aws:iam::ACCOUNT-ID-HERE:role/CloudMosaic-FrontendTaskRole-EDIT-ME",
+        "task-execution-role"       : "CloudMosaic-FrontendExecutionRole-EDIT-ME",
         "container-name"            : "CloudMosaicFrontend",
         "container-port-mapping"    : "80:80",
         "container-environment-variables" : "\"ASPNETCORE_ENVIRONMENT\"=\"Production\"",
@@ -82,7 +90,7 @@ The global Amazon.ECS.Tools package was installed in module 3 and we will re-use
         "desired-count"                   : 2,
         "deployment-minimum-healthy-percent" : 50,
         "deployment-maximum-percent"         : 200,
-        "elb-target-group"                   : "arn:aws:elasticloadbalancing:us-west-2:939934531084:targetgroup/Cloud-Defau-O148K4ZTUZHI/c3b71a369984527b",
+        "elb-target-group"                   : "arn:aws:elasticloadbalancing:us-west-2:ACCOUNT-ID-HERE:targetgroup/Cloud-Defau-EDIT-ME/EDIT-ME",
         "elb-container-port"                 : 80,
         "docker-build-options"               : "--pull",
         "vstoolkit-deployment-mode"          : "DeployService",
@@ -108,4 +116,4 @@ The global Amazon.ECS.Tools package was installed in module 3 and we will re-use
 
 1. Open a web browser and paste the copied DNS link to access the deployed application's home page.
 
-***You have now completed this module and can move onto the next.***
+***You have now completed this module and can move onto [module 6](./Module6.md).***

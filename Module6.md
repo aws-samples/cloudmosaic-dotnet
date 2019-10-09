@@ -52,4 +52,4 @@ You'll need to refresh the page a few times until the mosaic is listed as ready.
 1. Click the generated mosaic.
 1. Zoom in to show the tiles it is made up of.
 
-***You have now completed this module and can move onto the next.***
+***You have now completed this module and can move onto [module 7](./Module7.md).***

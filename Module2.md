@@ -59,4 +59,4 @@ While the stack is being created, setup a new Amazon Cognito User Pool to allow 
 
         > Note: For this workshop you can select to use the default KMS key for your account to encrypt the value.
 
-***You have now completed this module and can move onto the next.***
+***You have now completed this module and can move onto [module 3](./Module3.md).***

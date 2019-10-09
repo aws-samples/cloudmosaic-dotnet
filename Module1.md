@@ -157,4 +157,4 @@ If you have either the [AWS Tools for PowerShell](https://aws.amazon.com/powersh
 
 1. Respond to the prompts, supplying the access key and secret access key values from the csv file you downloaded previously. You can accept the default profile name or change it. When prompted to select a default region, enter the region you will be deploying this sample to (for convenience).
 
-***You have now completed this module and can move onto the next.***
+***You have now completed this module and can move onto [module 2](./Module2.md).***

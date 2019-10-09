@@ -119,4 +119,4 @@ To deploy the step functions (with or without layer support):
 
 When the step functions complete you can open the S3 bucket in Visual Studio or the AWS Console to view the created artifacts. The output mosaics will have been placed into the *Mosaic/userid/mosaicid/* path in the bucket.
 
-***You have now completed this module and can move onto the next.***
+***You have now completed this module and can move onto [module 5](./Module5.md).***

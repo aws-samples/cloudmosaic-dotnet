@@ -1,0 +1,187 @@
+﻿@page "/galleries"
+@using System.Collections.Generic;
+@using System.Threading;
+@using CloudMosaic.API.Client;
+@using CloudMosaic.BlazorFrontend.Models;
+@implements IDisposable
+
+@inject IModalService Modal
+@inject IServiceClientFactory ServiceClientFactory
+@inject ICommunicationClientFactory CommunicationClientFactory
+
+<AuthorizeView Roles="Admin">
+    <Authorized>
+        <h2>Tile Galleries</h2>
+
+        <p>Here are the tile galleries you have created.</p>
+
+        <table class="table">
+            <thead>
+                <tr class="row">
+                    <th class="col-sm-2">Name</th>
+                    <th class="col-sm-5">Status</th>
+                    <th class="col-sm-2">Tile Count</th>
+                    <th class="col-sm-2">Public</th>
+                    <th class="col-sm-1"></th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (this.UserGalleries != null)
+                {
+                    @foreach (var gallery in this.UserGalleries)
+                    {
+                        <tr class="row">
+                            <td class="col-sm-2">@gallery.Name</td>
+                            <td class="col-sm-5">@gallery.Status</td>
+                            <td class="col-sm-2">@gallery.TileCount</td>
+                            <td class="col-sm-2">
+                                @if (@gallery.IsPublic)
+                                {
+                                    <input class="form-check-input" type="checkbox" value="" id="defaultCheck2" disabled checked>
+
+                                }
+                                else
+                                {
+                                    <input class="form-check-input" type="checkbox" value="" id="defaultCheck2" disabled>
+
+                                }
+                            </td>
+                            <td class="col-sm-1">
+                                <button class="btn btn-danger" @onclick="e => DeleteGallery(gallery.GalleryId)"><span aria-hidden="true">&times;</span></button>
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+
+        @if (!this.Loaded)
+        {
+            <p>
+                <div class="d-flex align-items-center">
+                    <strong>Loading tile galleries...</strong>
+                    <div class="spinner-border ml-auto" role="status" aria-hidden="true"></div>
+                </div>
+            </p>
+        }
+
+        <button @onclick="NewGallerycClick" class="btn btn-primary">New Tile Gallery</button>
+
+    </Authorized>
+    <NotAuthorized>
+        <h1>Authorization Fail!</h1>
+        <p>Managing tile galleries is currently restricted to admin only.</p>
+    </NotAuthorized>
+</AuthorizeView>
+
+
+
+@code {
+
+    bool Loaded { get; set; }
+    System.Collections.ObjectModel.ObservableCollection<GalleryWrapper> UserGalleries = new System.Collections.ObjectModel.ObservableCollection<GalleryWrapper>();
+
+    GalleryClient _galleryClient;
+
+    CancellationTokenSource _cancelSource;
+    ICommunicationClient _communicationClient;
+
+    protected override async Task OnInitializedAsync()
+    {
+        this._galleryClient = await ServiceClientFactory.CreateGalleryClient();
+        await ReloadGalleries();
+
+        _cancelSource = new CancellationTokenSource();
+        _communicationClient = await CommunicationClientFactory.CreateCommunicationClient(_cancelSource.Token);
+        _ = ReadCommunicationEvents();
+    }
+
+    async Task ReloadGalleries()
+    {
+        var galleries = await this._galleryClient.GetUserGalleriesAsync(false);
+        UserGalleries.Clear();
+        foreach (var gallery in galleries)
+        {
+            UserGalleries.Add(new GalleryWrapper(gallery));
+        }
+
+        this.Loaded = true;
+        this.StateHasChanged();
+    }
+
+    async Task ReadCommunicationEvents()
+    {
+        while (!_cancelSource.IsCancellationRequested)
+        {
+            var evnt = await _communicationClient.ReadEventAsync(_cancelSource.Token);
+            if (evnt == null || evnt.ResourceType != Communication.Manager.MessageEvent.ResourceTypes.Gallery)
+                continue;
+
+            foreach (var gallery in this.UserGalleries)
+            {
+                if (string.Equals(gallery.GalleryId, evnt.ResourceId, StringComparison.Ordinal))
+                {
+                    if (evnt.CompleteEvent)
+                    {
+                        gallery.Gallery.Status = GalleryStatuses.Ready;
+                        gallery.Status = GalleryStatuses.Ready.ToString();
+                    }
+                    else
+                    {
+                        gallery.Status = evnt.Message;
+                    }
+
+                    this.StateHasChanged();
+                }
+            }
+        }
+    }
+
+    void NewGallerycClick()
+    {
+        Modal.OnClose += this.NewGalleryModalClosed;
+        Modal.Show("New Gallery", typeof(NewGalleryDialog));
+    }
+
+    void NewGalleryModalClosed(ModalResult modalResult)
+    {
+        Modal.OnClose -= this.NewGalleryModalClosed;
+        if (!modalResult.Cancelled)
+        {
+            InvokeAsync(async () => await ReloadGalleries());
+        }
+    }
+
+    void DeleteGallery(string galleryId)
+    {
+        var parameters = new ModalParameters();
+        parameters.Add(ConfirmDialog.RETURN_DATA_PARAMETER, galleryId);
+        parameters.Add(ConfirmDialog.CONFIRM_MESSAGE_PARAMETER, "Are you sure you want to delete the tile gallery.");
+
+        Modal.OnClose += this.DeleteGalleryModalClosed;
+        Modal.Show("Confirm Delete", typeof(ConfirmDialog), parameters);
+    }
+
+    void DeleteGalleryModalClosed(ModalResult modalResult)
+    {
+        Modal.OnClose -= this.DeleteGalleryModalClosed;
+        if (!modalResult.Cancelled)
+        {
+            InvokeAsync(async () =>
+            {
+                await this._galleryClient.DeleteGalleryAsync(modalResult.Data as string);
+                await ReloadGalleries();
+            });
+        }
+    }
+
+    public void Dispose()
+    {
+        if (_communicationClient != null)
+        {
+            _cancelSource.Cancel();
+            _communicationClient.Dispose();
+            _communicationClient = null;
+        }
+    }
+}

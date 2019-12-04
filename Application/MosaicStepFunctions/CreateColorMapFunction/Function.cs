@@ -27,10 +27,11 @@ namespace CreateColorMapFunction
 
         public async Task<State> FunctionHandler(State state, ILambdaContext context)
         {
+            var logger = new MosaicLogger(state, context);
             var tmpPath = Path.Combine(Path.GetTempPath(), Path.GetFileName(state.SourceKey));
             try
             {
-                context.Logger.LogLine("Saving image to tmp");
+                await logger.WriteMessageAsync("Fetching image", MosaicLogger.Target.All );
                 using (var response = await S3Client.GetObjectAsync(state.Bucket, state.SourceKey))
                 {
                     await response.WriteResponseStreamToFileAsync(tmpPath, false, default(CancellationToken));
@@ -39,7 +40,7 @@ namespace CreateColorMapFunction
                 var mosaicLayoutInfo = MosaicLayoutInfoManager.Create();
                 state.MosaicLayoutInfoKey = mosaicLayoutInfo.Key;
 
-                context.Logger.LogLine($"Loading image {tmpPath}. File size {new FileInfo(tmpPath).Length}");
+                await logger.WriteMessageAsync($"Loading image {tmpPath}. File size {new FileInfo(tmpPath).Length}", MosaicLogger.Target.CloudWatchLogs);
                 using (var sourceImage = Image.Load(tmpPath))
                 {
                     state.OriginalImagePixelCount = sourceImage.Width * sourceImage.Height;
@@ -57,16 +58,22 @@ namespace CreateColorMapFunction
                     }
                     else
                     {
-                        throw new Exception("Image too large to make a mosaic");
+                        state.PixelBlock = 10;
+                        await logger.WriteMessageAsync("Image is too large so doing an initial resize of the source image.", MosaicLogger.Target.All);
+                        ImageUtilites.ResizeImage(sourceImage, 3000, 2000);
                     }
-                
+
+                    // Compute how many pixels the mosaic image will be
+                    state.MosaicImagePixelCount = state.OriginalImagePixelCount / (state.PixelBlock * state.PixelBlock) * (state.TileSize * state.TileSize);
+
+                    await logger.WriteMessageAsync("Breaking image into a color map", MosaicLogger.Target.All);
                     mosaicLayoutInfo.ColorMap = CreateMap(state, sourceImage);
                 }
 
-                context.Logger.LogLine($"Color map created: {mosaicLayoutInfo.ColorMap.GetLength(0)}x{mosaicLayoutInfo.ColorMap.GetLength(1)}");
+                await logger.WriteMessageAsync($"Color map created of {mosaicLayoutInfo.ColorMap.GetLength(0)} rows and {mosaicLayoutInfo.ColorMap.GetLength(1)} columns", MosaicLogger.Target.Client);
 
                 await MosaicLayoutInfoManager.Save(S3Client, state.Bucket, mosaicLayoutInfo);
-                context.Logger.LogLine($"Saving mosaic layout info to {mosaicLayoutInfo.Key}");
+                await logger.WriteMessageAsync($"Saving mosaic layout info to {mosaicLayoutInfo.Key}", MosaicLogger.Target.CloudWatchLogs);
 
                 return state;
             }

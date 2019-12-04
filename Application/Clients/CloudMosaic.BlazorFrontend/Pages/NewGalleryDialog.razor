@@ -1,0 +1,121 @@
+﻿@using System.Collections.Generic;
+@using CloudMosaic.API.Client;
+@using System.IO;
+
+@inject IModalService ModalService
+@inject IServiceClientFactory serviceClientFactory;
+@inject IFileReaderService fileReaderService;
+@inject IFileUploader fileUploader;
+@inject IJSRuntime JSRuntime
+
+    <div class="simple-form">
+        <div class="col-md-10 form-group">
+            <label class="control-label">Name</label>
+            <input class="form-control" @bind="@Name" disabled="@DisableInput" />
+        </div>
+        <div class="col-md-10 form-group">
+            <label class="control-label">Select zip file containing images to use as tiles</label>
+            <input type="file"
+                   @ref="inputZipFile"
+                   id="theInputFile"
+                   class="form-control form-control-file"
+                   accept=".zip"
+                   style="height:auto"
+                   disabled="@DisableInput"
+                   @onchange="OnFileChange" />
+        </div>
+
+        <button @onclick="SubmitForm" class="btn btn-primary" disabled="@DisableInput">Submit</button>
+        <button @onclick="Cancel" class="btn btn-secondary" disabled="@DisableInput">Cancel</button>
+
+
+        <p style="margin-top:15px">
+            <div class="progress">
+                <div class="progress-bar" role="progressbar" style="@ProgressStyle" aria-valuenow="@ProgressNow" aria-valuemin="0" aria-valuemax="@ProgressMax"></div>
+            </div><br />
+            <small>@ProgressMessage</small>
+        </p>
+
+    </div>
+
+@if (!string.IsNullOrEmpty(ErrorMessage))
+{
+    <p>@ErrorMessage</p>
+}
+
+
+@code {
+
+    bool ShowForm { get; set; } = true;
+
+    ElementReference inputZipFile;
+
+    bool DisableInput = false;
+
+
+    string Name { get; set; }
+
+    long ProgressNow { get; set; } = 0;
+    long ProgressMax { get; set; } = 100;
+    string ProgressStyle { get; set; } = "width: 0%;";
+    string ProgressMessage { get; set; }
+
+
+    string ErrorMessage;
+
+    void OnFileChange(ChangeEventArgs eventArgs)
+    {
+        if (string.IsNullOrEmpty(this.Name) && !string.IsNullOrEmpty(eventArgs?.Value?.ToString()))
+        {
+            var fullPath = eventArgs.Value.ToString();
+
+            this.Name = Utilites.GetFileNameWithoutExtension(fullPath);
+        }
+
+
+    }
+
+    async Task SubmitForm()
+    {
+        try
+        {
+            var file = (await fileReaderService.CreateReference(inputZipFile).EnumerateFilesAsync()).First();
+            this.ProgressMax = await JSRuntime.InvokeAsync<long>("window.cloudMosaicJsFunctions.getFileSize", "theInputFile");
+
+
+
+            this.DisableInput = true;
+            this.StateHasChanged();
+
+            var uploadUrl = await fileUploader.UploadFileAsync(file, (evnt) =>
+            {
+                this.ProgressNow = evnt.UploadBytes;
+
+                var percent = (int)((double)evnt.UploadBytes / (double)this.ProgressMax * 100.0);
+                this.ProgressStyle = $"width: {percent}%;";
+
+                this.ProgressMessage = $"Bytes read: {this.ProgressNow} / {this.ProgressMax}, Parts upload: {evnt.UploadParts}";
+
+                this.StateHasChanged();
+            });
+
+
+            var galleryClient = await serviceClientFactory.CreateGalleryClient();
+            var result = await galleryClient.CreateGalleryAsync(this.Name);
+
+            await galleryClient.SubmitGalleryImportJobAsync(result.GalleryId, uploadUrl);
+            ModalService.Close(ModalResult.Ok($"Gallery created."));
+
+        }
+        catch (Exception e)
+        {
+            ErrorMessage = $"Error creating new gallery: {e.Message}";
+        }
+    }
+
+
+    void Cancel()
+    {
+        ModalService.Close(ModalResult.Cancel());
+    }
+}

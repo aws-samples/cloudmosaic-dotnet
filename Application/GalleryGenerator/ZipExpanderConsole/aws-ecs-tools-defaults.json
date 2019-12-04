@@ -1,14 +1,9 @@
 
 {
-    "region" : "us-west-2",
-    "profile" : "default",
+    "region" : "",
+    "profile" : "",
     "configuration" : "Release",
     "tag"           : "",
-    "task-definition-name" : "",
-    "task-cpu"             : "512",
-    "task-memory"          : "1024",
-    "task-definition-task-role" : "",
-    "task-execution-role"       : "ecsTaskExecutionRole",
     "vstoolkit-deployment-mode" : "PushOnly",
     "docker-build-working-dir"  : ""
 }

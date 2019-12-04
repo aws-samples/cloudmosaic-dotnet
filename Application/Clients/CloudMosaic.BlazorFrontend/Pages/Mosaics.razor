@@ -1,0 +1,193 @@
+﻿@page "/mosaic"
+@using System.Collections.Generic;
+@using System.Threading;
+@using CloudMosaic.BlazorFrontend.Models;
+@using CloudMosaic.API.Client;
+@implements IDisposable
+
+
+@inject IModalService Modal
+@inject IServiceClientFactory ServiceClientFactory
+@inject ICommunicationClientFactory CommunicationClientFactory
+@inject NavigationManager NavigationManager
+
+<h2>My Mosaics</h2>
+
+<p>Here are the mosaics you have created.</p>
+
+<table class="table">
+    <thead>
+        <tr class="row">
+            <th class="col-sm-2">Name</th>
+            <th class="col-sm-2">Created</th>
+            <th class="col-sm-5">Status</th>
+            <th class="col-sm-2"></th>
+            <th class="col-sm-1"></th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (this.UserMosaics != null)
+        {
+            @foreach (var mosaic in this.UserMosaics)
+            {
+                <tr class="row">
+                    <td class="col-sm-2">@mosaic.Name</td>
+                    <td class="col-sm-2">@mosaic.CreateDate.ToLocalTime().ToString("g")</td>
+                    <td class="col-sm-5">@mosaic.Status</td>
+                    <td class="col-sm-2">
+                        @if (mosaic.Mosaic.Status == MosaicStatuses.Completed)
+                        {
+                            <a href="@mosaic.MosaicFullUrl" target="_blank"><img src="@mosaic.MosaicThumbnailUrl" /></a>
+                        }
+                    </td>
+                    <td class="col-sm-1">
+                        <button class="btn btn-danger" @onclick="e => DeleteMosaic(mosaic.MosaicId)"><span aria-hidden="true">&times;</span></button>
+                    </td>
+                </tr>
+            }
+        }
+    </tbody>
+</table>
+
+@if (!this.Loaded)
+{
+    <p>
+        <div class="d-flex align-items-center">
+            <strong>Loading mosaics...</strong>
+            <div class="spinner-border ml-auto" role="status" aria-hidden="true"></div>
+        </div>
+    </p>
+}
+
+<button @onclick="NewMosaicClick" class="btn btn-primary">New Mosaic</button>
+
+@code {
+
+    bool Loaded { get; set; }
+    System.Collections.ObjectModel.ObservableCollection<MosaicWrapper> UserMosaics = new System.Collections.ObjectModel.ObservableCollection<MosaicWrapper>();
+
+    ICommunicationClient _communicationClient;
+
+    CancellationTokenSource _cancelSource;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        _cancelSource = new CancellationTokenSource();
+        await ReloadMosaics();
+
+        _communicationClient = await CommunicationClientFactory.CreateCommunicationClient(_cancelSource.Token);
+
+        _ = ReadCommunicationEvents();
+    }
+
+    async Task ReloadMosaics()
+    {
+        try
+        {
+            var mosaicClient = await ServiceClientFactory.CreateMosaicClient();
+
+            var mosaics = await mosaicClient.GetUserMosaicAsync();
+            UserMosaics.Clear();
+            foreach(var mosaic in mosaics)
+            {
+                UserMosaics.Add(new MosaicWrapper(mosaic));
+            }
+
+            this.Loaded = true;
+            this.StateHasChanged();
+        }
+        catch (NoIdTokenException)
+        {
+            NavigationManager.NavigateTo("Identity/Account/Login", true);
+        }
+    }
+
+
+    async Task ReadCommunicationEvents()
+    {
+        while(!_cancelSource.IsCancellationRequested)
+        {
+            var evnt = await _communicationClient.ReadEventAsync(_cancelSource.Token);
+            if (evnt == null || evnt.ResourceType != Communication.Manager.MessageEvent.ResourceTypes.Mosaic)
+                continue;
+
+            foreach(var mosaic in this.UserMosaics)
+            {
+                if(string.Equals(mosaic.MosaicId, evnt.ResourceId, StringComparison.Ordinal))
+                {
+                    if(evnt.CompleteEvent)
+                    {
+                        mosaic.Mosaic.Status = MosaicStatuses.Completed;
+                        mosaic.Status = MosaicStatuses.Completed.ToString();
+                    }
+                    else
+                    {
+                        mosaic.Status = evnt.Message;
+                    }
+
+                    this.StateHasChanged();
+                }
+            }
+        }
+    }
+
+
+    void NewMosaicClick()
+    {
+        Modal.OnClose += this.NewMosaicModalClosed;
+        Modal.Show("New Mosaic", typeof(NewMosaicDialog));
+    }
+
+    void NewMosaicModalClosed(ModalResult modalResult)
+    {
+        Modal.OnClose -= this.NewMosaicModalClosed;
+        if (!modalResult.Cancelled)
+        {
+            InvokeAsync(async () => await ReloadMosaics());
+        }
+    }
+
+    void DeleteMosaic(string mosaicId)
+    {
+        var parameters = new ModalParameters();
+        parameters.Add(ConfirmDialog.RETURN_DATA_PARAMETER, mosaicId);
+        parameters.Add(ConfirmDialog.CONFIRM_MESSAGE_PARAMETER, "Are you sure you want to delete the mosaic.");
+
+        Modal.OnClose += this.DeleteMosaicModalClosed;
+        Modal.Show("Confirm Delete", typeof(ConfirmDialog), parameters);
+    }
+
+    void DeleteMosaicModalClosed(ModalResult modalResult)
+    {
+        Modal.OnClose -= this.DeleteMosaicModalClosed;
+        if (!modalResult.Cancelled)
+        {
+            InvokeAsync(async () =>
+            {
+                try
+                {
+                    var mosaicClient = await ServiceClientFactory.CreateMosaicClient();
+                    await mosaicClient.DeleteMosaicAsync(modalResult.Data as string);
+                    await ReloadMosaics();
+                }
+                catch (NoIdTokenException)
+                {
+                    NavigationManager.NavigateTo("Identity/Account/Login", true);
+                }
+            });
+        }
+    }
+
+
+    public void Dispose()
+    {
+        if(_communicationClient != null)
+        {
+            _cancelSource.Cancel();
+            _communicationClient.Dispose();
+            _communicationClient = null;
+        }
+    }
+
+}

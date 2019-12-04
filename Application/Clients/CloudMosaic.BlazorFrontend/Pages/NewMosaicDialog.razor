@@ -1,0 +1,136 @@
+﻿@using System.Collections.Generic;
+@using CloudMosaic.API.Client;
+@using System.IO;
+
+@inject IModalService ModalService
+@inject IServiceClientFactory serviceClientFactory;
+@inject IFileReaderService fileReaderService;
+@inject IFileUploader fileUploader;
+@inject IJSRuntime JSRuntime
+
+
+<div class="simple-form">
+    <div class="col-md-10 form-group">
+        <label class="control-label">Select image to create mosaic from</label>
+        <input type="file"
+               @ref="mosaicInputFile"
+               id="theSourceImage"
+               class="form-control form-control-file"
+               accept=".jpg,.png"
+               style="height:auto"
+               disabled="@DisableInput"
+               @onchange="OnFileChange" />
+    </div>
+    <div class="col-md-10 form-group">
+        <label class="control-label">Name</label>
+        <input class="form-control" @bind="@Name" disabled="@DisableInput" />
+    </div>
+    <div class="col-md-10 form-group">
+        <label class="control-label">Tile Gallery</label>
+        <select class="form-control" @bind="@SelectedGallery" disabled="@DisableInput">
+            @if (Galleries != null)
+            {
+                @foreach (var gallery in Galleries)
+                {
+                    <option value="@gallery.GalleryId">@gallery.Name (@gallery.TileCount)</option>
+                }
+            }
+        </select>
+    </div>
+
+    <button @onclick="SubmitForm" class="btn btn-primary" disabled="@DisableInput">Submit</button>
+    <button @onclick="Cancel" class="btn btn-secondary" disabled="@DisableInput">Cancel</button>
+
+    <p style="margin-top:15px">
+        <div class="progress">
+            <div class="progress-bar" role="progressbar" style="@ProgressStyle" aria-valuenow="@ProgressNow" aria-valuemin="0" aria-valuemax="@ProgressMax"></div>
+        </div><br />
+        <small>@ProgressMessage</small>
+    </p>
+
+
+</div>
+
+@if (!string.IsNullOrEmpty(ErrorMessage))
+{
+    <p>@ErrorMessage</p>
+}
+
+@code {
+
+    bool ShowForm { get; set; } = true;
+
+    ElementReference mosaicInputFile;
+
+    ICollection<Gallery> Galleries;
+
+    string Name { get; set; }
+
+    string SelectedGallery { get; set; }
+
+    bool DisableInput = false;
+    long ProgressNow { get; set; } = 0;
+    long ProgressMax { get; set; } = 100;
+    string ProgressStyle { get; set; } = "width: 0%;";
+    string ProgressMessage { get; set; }
+
+
+    string ErrorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var galleryClient = await serviceClientFactory.CreateGalleryClient();
+
+        Galleries = await galleryClient.GetUserGalleriesAsync(true);
+        SelectedGallery = Galleries.FirstOrDefault()?.GalleryId;
+    }
+
+    void OnFileChange(ChangeEventArgs eventArgs)
+    {
+        if (!string.IsNullOrEmpty(eventArgs?.Value?.ToString()))
+        {
+            this.Name = Utilites.GetFileNameWithoutExtension(eventArgs.Value.ToString());
+        }
+    }
+
+    async Task SubmitForm()
+    {
+        try
+        {
+            var file = (await fileReaderService.CreateReference(mosaicInputFile).EnumerateFilesAsync()).First();
+            this.ProgressMax = await JSRuntime.InvokeAsync<long>("window.cloudMosaicJsFunctions.getFileSize", "theSourceImage");
+
+            this.DisableInput = true;
+            this.StateHasChanged();
+
+            var uploadUrl = await fileUploader.UploadFileAsync(file, (evnt) =>
+            {
+                this.ProgressNow = evnt.UploadBytes;
+
+                var percent = (int)((double)evnt.UploadBytes / (double)this.ProgressMax * 100.0);
+                this.ProgressStyle = $"width: {percent}%;";
+
+                this.ProgressMessage = $"Bytes read: {this.ProgressNow} / {this.ProgressMax}, Parts upload: {evnt.UploadParts}";
+
+                this.StateHasChanged();
+            });
+
+
+            var mosaicClient = await serviceClientFactory.CreateMosaicClient();
+            await mosaicClient.SubmitMosaicJobAsync(this.SelectedGallery, this.Name, uploadUrl);
+
+            ModalService.Close(ModalResult.Ok($"Image submitted to create a new mosaic."));
+
+        }
+        catch (Exception e)
+        {
+            ErrorMessage = $"Error creating new mosaic: {e.Message}";
+        }
+    }
+
+
+    void Cancel()
+    {
+        ModalService.Close(ModalResult.Cancel());
+    }
+}

@@ -5,7 +5,7 @@ using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.Model;
 
 using Amazon.Lambda.Core;
-
+using CloudMosaic.Communication.Manager;
 using MosaicStepFunctions.Common;
 
 // Assembly attribute to enable the Lambda function's JSON input to be converted into a .NET class.
@@ -24,6 +24,8 @@ namespace NotifyCompletionFunction
 
         public async Task<State> FunctionHandler(State state, ILambdaContext context)
         {
+            var logger = new MosaicLogger(state, context);
+
             var updateItemRequest = new UpdateItemRequest
             {
                 TableName = state.TableMosaic,
@@ -34,15 +36,22 @@ namespace NotifyCompletionFunction
                 },
                 AttributeUpdates = new Dictionary<string, AttributeValueUpdate>
                 {
-                    {"Status", new AttributeValueUpdate{Action= AttributeAction.PUT, Value = new AttributeValue{N = "1" } } }
+                    {"Status", new AttributeValueUpdate{Action= AttributeAction.PUT, Value = new AttributeValue{N = state.Success ? "1" : "2" } } }
                 }
             };
 
-            await this.DDBClient.UpdateItemAsync(updateItemRequest);
 
-            // TODO Send some form of notification to the user we are done, perhaps
-            // an email or web sockets notification so the page updates itself without
-            // manual refresh
+            string errorMessage;
+            if(!state.Success && (errorMessage = state.GetErrorMessage()) != null)
+            {
+                updateItemRequest.AttributeUpdates["ErrorMessage"] = new AttributeValueUpdate { Action = AttributeAction.PUT, Value = new AttributeValue { S = errorMessage } };
+                await logger.WriteMessageAsync(new MessageEvent { Message = $"Mosaic render failed: {errorMessage}", CompleteEvent = false }, MosaicLogger.Target.All);
+            }
+            else
+            {
+                await logger.WriteMessageAsync(new MessageEvent { Message = "Mosaic render complete", CompleteEvent = true }, MosaicLogger.Target.All);
+            }
+            await this.DDBClient.UpdateItemAsync(updateItemRequest);
 
             return state;
         }

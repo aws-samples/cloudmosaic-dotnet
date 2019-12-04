@@ -2,12 +2,12 @@ version: 0.2
 
 env:
     parameter-store:
-        DOCKER_TAG: "/CloudMosaic/prod/ZipExpanderConsoleTag"
+        DOCKER_TAG: "/CloudMosaic/ZipExpanderConsoleTag"
 phases:
   install:
     commands:
       - dotnet tool install -g Amazon.ECS.Tools
   build:
     commands:
-      - cd ./Code/CloudMosaic/GalleryGenerator/ZipExpanderConsole
-      - dotnet ecs push-image --tag $DOCKER_TAG
+      - cd ./Application/GalleryGenerator/ZipExpanderConsole
+      - dotnet ecs push-image --config-file codebuild-defaults.json --tag $DOCKER_TAG

@@ -1,0 +1,5 @@
+{
+  "s3-prefix": "GalleryItemStreamProcessor/",
+  "template": "serverless.template",
+  "framework": "netcoreapp2.1"
+}

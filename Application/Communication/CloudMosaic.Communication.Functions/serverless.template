@@ -1,0 +1,155 @@
+{
+	"AWSTemplateFormatVersion" : "2010-09-09",
+	"Transform" : "AWS::Serverless-2016-10-31",
+	"Description" : "An AWS Serverless Application.",
+
+    "Parameters" : {
+		"ConnectionsTable" : {
+		    "Type" : "AWS::SSM::Parameter::Value<String>",
+            "Default" : "/CloudMosaic/AppOptions/TableCommunicationConnection"
+		}
+	},
+
+	"Resources" : {
+
+        "CommunicationAPI" : {
+            "Type" : "AWS::ApiGatewayV2::Api",
+            "Properties" : {
+                "Name" : "CloudMosaicCommunicationWebSocket",
+                "ProtocolType" : "WEBSOCKET",
+                "RouteSelectionExpression" : "$request.body.message"
+            }
+        },
+
+        "ConnectRoute" : {
+            "Type" : "AWS::ApiGatewayV2::Route",
+            "Properties" : {
+                "ApiId" : { "Ref" : "CommunicationAPI" },
+                "RouteKey" : "$connect",
+                "AuthorizationType" : "NONE",
+                "OperationName" : "ConnectRoute",
+                "Target" : {"Fn::Join" : [ "/", ["integrations", { "Ref" : "ConnectInteg" } ] ]}
+            }
+        },
+
+        "ConnectInteg" : {
+            "Type" : "AWS::ApiGatewayV2::Integration",
+            "Properties" : {
+                "ApiId" : { "Ref" : "CommunicationAPI" },
+                "IntegrationType" : "AWS_PROXY",
+                "IntegrationUri" : { "Fn::Sub" : "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${OnConnectFunction.Arn}/invocations" }
+            }
+        },
+
+        "DisconnectRoute" : {
+            "Type" : "AWS::ApiGatewayV2::Route",
+            "Properties" : {
+                "ApiId" : { "Ref" : "CommunicationAPI" },
+                "RouteKey" : "$disconnect",
+                "AuthorizationType" : "NONE",
+                "OperationName" : "DisconnectRoute",
+                "Target" : {"Fn::Join" : [ "/", ["integrations", { "Ref" : "DisconnectInteg" } ] ]}
+            }
+        },
+
+        "DisconnectInteg" : {
+            "Type" : "AWS::ApiGatewayV2::Integration",
+            "Properties" : {
+                "ApiId" : { "Ref" : "CommunicationAPI" },
+                "IntegrationType" : "AWS_PROXY",
+                "IntegrationUri" : { "Fn::Sub" : "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${OnDisconnectFunction.Arn}/invocations" }
+            }
+        },
+
+        "CommunicationDeployment" : {
+            "Type" : "AWS::ApiGatewayV2::Deployment",
+            "DependsOn" : ["ConnectRoute", "DisconnectRoute"],
+            "Properties" : {
+                "ApiId" : { "Ref" : "CommunicationAPI" }
+            }
+        },
+
+        "ApiStage" : {
+            "Type" : "AWS::ApiGatewayV2::Stage",
+            "Properties" : {
+                "ApiId" : { "Ref" : "CommunicationAPI" },
+                "DeploymentId" : { "Ref" : "CommunicationDeployment" },
+                "StageName"    : "Prod"
+            }
+        },
+
+		"OnConnectFunction" : {
+			"Type" : "AWS::Serverless::Function",
+			"Properties": {
+				"Handler": "CloudMosaic.Communication.Functions::CloudMosaic.Communication.Functions.Functions::OnConnect",
+				"Runtime": "dotnetcore2.1",
+				"MemorySize": 512,
+				"Timeout": 30,
+                "CodeUri" : "",
+				"Role": null,
+                "Policies" : [
+					"arn:aws:iam::aws:policy/AWSLambdaFullAccess",
+					"arn:aws:iam::aws:policy/AmazonSSMFullAccess"
+				],
+                "Environment" : {
+					"Variables" : {
+						"COMMUNICATION_TABLE" : { "Ref" : "ConnectionsTable" },
+						"LAMBDA_NET_SERIALIZER_DEBUG" : "false"
+					}					
+				}
+			}
+		},
+
+		"OnDisconnectFunction" : {
+			"Type" : "AWS::Serverless::Function",
+			"Properties": {
+				"Handler": "CloudMosaic.Communication.Functions::CloudMosaic.Communication.Functions.Functions::OnDisconnect",
+				"Runtime": "dotnetcore2.1",
+				"MemorySize": 128,
+				"Timeout": 30,
+                "CodeUri" : "",
+				"Role": null,
+                "Policies" : ["arn:aws:iam::aws:policy/AWSLambdaFullAccess"],
+                "Environment" : {
+					"Variables" : {
+						"COMMUNICATION_TABLE" : { "Ref" : "ConnectionsTable" },
+						"LAMBDA_NET_SERIALIZER_DEBUG" : "false"
+					}					
+				}
+			}
+		},
+
+        "ConnectPermission" : {
+            "Type" : "AWS::Lambda::Permission",
+            "Properties" : {
+                "Action" : "lambda:InvokeFunction",
+                "FunctionName" : { "Ref" : "OnConnectFunction" },
+                "Principal"    : "apigateway.amazonaws.com"
+            }
+        },
+
+        "DisconnectPermission" : {
+            "Type" : "AWS::Lambda::Permission",
+            "Properties" : {
+                "Action" : "lambda:InvokeFunction",
+                "FunctionName" : { "Ref" : "OnDisconnectFunction" },
+                "Principal"    : "apigateway.amazonaws.com"
+            }
+        },
+
+
+        "ParameterWebSocketUrl": {
+            "Type": "AWS::SSM::Parameter",
+            "Description": "",
+            "Properties": {
+                "Type": "String",
+                "Value": { "Fn::Sub" : "wss://${CommunicationAPI}.execute-api.${AWS::Region}.amazonaws.com/Prod/" },
+                "Name": "/CloudMosaic/AppOptions/CloudMosaicWebSocketAPI"
+            }
+        }
+
+	},
+
+	"Outputs" : {
+	}
+}

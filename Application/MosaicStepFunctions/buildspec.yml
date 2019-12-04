@@ -9,9 +9,9 @@ phases:
       - dotnet tool install -g Amazon.Lambda.Tools
   build:
     commands:
-      - cd ./Code/CloudMosaic/MosaicStepFunctions
-      - dotnet lambda package-ci --serverless-template serverless.template --output-template updated.template --s3-bucket $S3_BUCKET --s3-prefix MosaicStepFunctions
+      - cd ./Application/MosaicStepFunctions
+      - dotnet lambda package-ci --config-file codebuild-defaults.json --serverless-template serverless.template --output-template updated.template --s3-bucket $S3_BUCKET --s3-prefix MosaicStepFunctions
 artifacts:
   files:
-    - ./Code/CloudMosaic/MosaicStepFunctions/updated.template
+    - ./Application/MosaicStepFunctions/updated.template
   discard-paths: yes

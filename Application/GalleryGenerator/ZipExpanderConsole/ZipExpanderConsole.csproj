@@ -7,11 +7,15 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="AWSSDK.S3" Version="3.3.100" />
-    <PackageReference Include="AWSSDK.DynamoDBv2" Version="3.3.100" />
-    <PackageReference Include="AWSSDK.Rekognition" Version="3.3.100" />
-    <PackageReference Include="SixLabors.ImageSharp" Version="1.0.0-beta0005" />
-    <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
+    <PackageReference Include="AWSSDK.DynamoDBv2" Version="3.3.101.88" />
+    <PackageReference Include="AWSSDK.S3" Version="3.3.106.4" />
+    <PackageReference Include="AWSSDK.Rekognition" Version="3.3.101.37" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="1.0.0-beta0007" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Communication\CloudMosaic.Communication.Manager\CloudMosaic.Communication.Manager.csproj" />
   </ItemGroup>
 
 </Project>

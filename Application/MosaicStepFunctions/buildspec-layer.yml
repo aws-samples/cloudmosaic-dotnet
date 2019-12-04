@@ -1,0 +1,12 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      dotnet: 2.2   
+    commands:
+      - dotnet tool install -g Amazon.Lambda.Tools
+  build:
+    commands:
+      - cd ./Application/MosaicStepFunctions
+      - dotnet lambda publish-layer MosaicStepFunctionLayer  --layer-type runtime-package-store --package-manifest MosaicLayer.xml --enable-package-optimization true --s3-bucket $S3_BUCKET --s3-prefix MosaicStepFunctionsLayer

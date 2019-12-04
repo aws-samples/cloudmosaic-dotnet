@@ -99,20 +99,31 @@ let DetermineBestImage (targetColor:Rgba32) (tileInfos:IList<TileImageInfo>) =
                             )
                             |> Array.sortBy(fun x -> x.Difference)).[randomIndex].Tile
 
+
 let Process (state: State) (context: ILambdaContext) = async {
 
+    let logger = new MosaicLogger(state, context)
+
     let! mosaicLayoutInfo = MosaicLayoutInfoManager.Load(s3Client, state.Bucket, state.MosaicLayoutInfoKey) |> Async.AwaitTask
+    logger.WriteMessage("Loading tile gallery", MosaicLogger.Target.All)
     let! tileInfos = LoadGalleryItems state.TableGalleryItems  state.GalleryId  context
-    sprintf "Loaded %d tile gallery items" tileInfos.Count |> context.Logger.LogLine
+    logger.WriteMessage((sprintf "Loaded %d tiles from gallery" tileInfos.Count), MosaicLogger.Target.All)
 
     let s3KeyToId = new Dictionary<string, int>()
     mosaicLayoutInfo.IdToTileKey <- new Dictionary<int, string>()
 
-    sprintf "Determing best fit for each tile: %dx%d" (mosaicLayoutInfo.ColorMap.GetLength(0)) (mosaicLayoutInfo.ColorMap.GetLength(1))  |> context.Logger.LogLine
+    logger.WriteMessage((sprintf "Determing best fit for each tile: %dx%d" (mosaicLayoutInfo.ColorMap.GetLength(0)) (mosaicLayoutInfo.ColorMap.GetLength(1))), MosaicLogger.Target.All)
+
+    let mutable reportedRow = -1
     mosaicLayoutInfo.TileMap <- Array2D.init<int>  
                                     (mosaicLayoutInfo.ColorMap.GetLength(0)) 
                                     (mosaicLayoutInfo.ColorMap.GetLength(1)) 
                                     (fun row col -> 
+                                        
+                                        if reportedRow < row then
+                                            logger.WriteMessage((sprintf "Determining best fit images for row %d of %d" (row + 1) (mosaicLayoutInfo.ColorMap.GetLength(0))), MosaicLogger.Target.Client)
+                                            reportedRow <- row
+
                                         let bestFit = DetermineBestImage (mosaicLayoutInfo.ColorMap.[row, col]) tileInfos
 
                                         let mutable id = 0
@@ -124,8 +135,9 @@ let Process (state: State) (context: ILambdaContext) = async {
                                         id
                                     )
 
-                                        
-    sprintf "Saving mosaic layout info to %s" mosaicLayoutInfo.Key |> context.Logger.LogLine
+
+    logger.WriteMessage("Determining best fit images complete", MosaicLogger.Target.Client)
+    logger.WriteMessage((sprintf "Saving mosaic layout info to %s" mosaicLayoutInfo.Key), MosaicLogger.Target.CloudWatchLogs)
     do! MosaicLayoutInfoManager.Save(s3Client, state.Bucket, mosaicLayoutInfo) |> Async.AwaitTask   
 }
 

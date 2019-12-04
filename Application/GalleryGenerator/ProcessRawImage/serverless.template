@@ -5,8 +5,8 @@
 
     "Parameters": {
         "TableGalleryItems": {
-            "Type": "String",
-            "Default": "CloudMosaic-GalleryItem"
+            "Type": "AWS::SSM::Parameter::Value<String>",
+            "Default": "/CloudMosaic/AppOptions/TableGalleryItems"
         }
     },
 

@@ -1,0 +1,94 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>bootstrap</name>
+    </assembly>
+    <members>
+        <member name="T:CloudMosaic.API.Controllers.GalleryController">
+            <summary>
+            API to manage tile galleries for an authenticated user.
+            </summary>
+        </member>
+        <member name="M:CloudMosaic.API.Controllers.GalleryController.#ctor(Microsoft.Extensions.Options.IOptions{CloudMosaic.API.AppOptions},Amazon.S3.IAmazonS3,Amazon.DynamoDBv2.IAmazonDynamoDB,Amazon.Batch.IAmazonBatch)">
+            <summary>
+            Constructor for the controller.
+            </summary>
+            <param name="appOptions"></param>
+            <param name="s3Client"></param>
+            <param name="ddbClient"></param>
+            <param name="batchClient"></param>
+        </member>
+        <member name="M:CloudMosaic.API.Controllers.GalleryController.GetUserGalleries(System.Nullable{System.Boolean})">
+            <summary>
+            Get the list of galleries the user has created.
+            </summary>
+            <param name="includePublic">If true then also include the galleries that have been marked as public.</param>
+            <returns></returns>
+        </member>
+        <member name="M:CloudMosaic.API.Controllers.GalleryController.CreateGallery(System.String)">
+            <summary>
+            Create a new empty gallery.
+            </summary>
+            <param name="name">The name of the gallery.</param>
+            <returns>The gallery id to use for adding tiles to the gallery.</returns>
+        </member>
+        <member name="M:CloudMosaic.API.Controllers.GalleryController.DeleteGallery(System.String)">
+            <summary>
+            Delete a gallery.
+            </summary>
+            <param name="galleryId">The id of the gallery to delete.</param>
+            <returns></returns>
+        </member>
+        <member name="M:CloudMosaic.API.Controllers.GalleryController.SubmitGalleryImportJob(System.String,System.String)">
+            <summary>
+            Start an import job to add images from a zip file to a gallery.
+            </summary>
+            <param name="galleryId">Gallery to add images to.</param>
+            <param name="sourceZipUrl">URL to a zip file of images that will be imported.</param>
+            <returns></returns>
+        </member>
+        <member name="T:CloudMosaic.API.Controllers.MosaicController">
+            <summary>
+            API to manage mosaics for an authenticated user.
+            </summary>
+        </member>
+        <member name="M:CloudMosaic.API.Controllers.MosaicController.#ctor(Microsoft.Extensions.Options.IOptions{CloudMosaic.API.AppOptions},Amazon.S3.IAmazonS3,Amazon.StepFunctions.IAmazonStepFunctions,Amazon.DynamoDBv2.IAmazonDynamoDB)">
+            <summary>
+            Constructor for the controller.
+            </summary>
+            <param name="appOptions"></param>
+            <param name="s3Client"></param>
+            <param name="stepClient"></param>
+            <param name="ddbClient"></param>
+        </member>
+        <member name="M:CloudMosaic.API.Controllers.MosaicController.GetUserMosaic">
+            <summary>
+            Get the list of mosaics for a user. The mosaic will contain temporary URL to the actual mosaic images.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:CloudMosaic.API.Controllers.MosaicController.GetAllMosaic">
+            <summary>
+            Gets a feed of all of the mosaics created. This API requires Admin access.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:CloudMosaic.API.Controllers.MosaicController.DeleteMosaic(System.String)">
+            <summary>
+            Deletes a mosaic.
+            </summary>
+            <param name="mosaicId">The id of the mosaic to delete.</param>
+            <returns></returns>
+        </member>
+        <member name="M:CloudMosaic.API.Controllers.MosaicController.SubmitMosaicJob(System.String,System.String,System.String)">
+            <summary>
+            Starts a job to create the mosaic.
+            </summary>
+            <param name="galleryId">The gallery id to use to create the mosaic.</param>
+            <param name="name">The name of the mosaic to be created.</param>
+            <param name="sourceImageUrl">The URL to the image to be converted into a mosaic.</param>
+            <returns></returns>
+        </member>
+        <!-- Badly formed XML comment ignored for member "M:CloudMosaic.API.LambdaEntryPoint.Init(Microsoft.AspNetCore.Hosting.IWebHostBuilder)" -->
+    </members>
+</doc>

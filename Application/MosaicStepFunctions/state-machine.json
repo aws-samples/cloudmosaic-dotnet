@@ -1,23 +1,49 @@
 {
   "Comment": "CloudMosaic State Machine",
-  "StartAt": "CreateColorMap",
+  "StartAt": "ModerateUserImage",
   "States": {
+    "ModerateUserImage": {
+      "Type": "Task",
+      "Resource": "${ModerateUserImageFunction.Arn}",
+      "Next": "CreateColorMap",
+      "Catch": [
+        {
+          "ErrorEquals": [ "States.ALL" ],
+          "ResultPath": "$.Exception",
+          "Next": "NotifyCompletion"
+        }
+      ]
+    },
     "CreateColorMap": {
       "Type": "Task",
       "Resource": "${CreateColorMapFunction.Arn}",
-      "Next": "DetermineBestImages"
+      "Next": "DetermineBestImages",
+      "Catch": [
+        {
+          "ErrorEquals": [ "States.ALL" ],
+          "ResultPath": "$.Exception",
+          "Next": "NotifyCompletion"
+        }
+      ]
     },
     "DetermineBestImages": {
       "Type": "Task",
       "Resource": "${DetermineBestImagesFunction.Arn}",
-      "Next": "ChooseRenderer"
+      "Next": "ChooseRenderer",
+      "Catch": [
+        {
+          "ErrorEquals": [ "States.ALL" ],
+          "ResultPath": "$.Exception",
+          "Next": "NotifyCompletion"
+        }
+      ]
     },
-    "ChooseRenderer" : {
+    "ChooseRenderer": {
       "Type": "Choice",
-      "Choices" : [
+      "Choices": [
         {
           "Variable": "$.OriginalImagePixelCount",
-          "NumericLessThan": 480000,
+          "NumericLessThan": 300000,
           "Next": "RenderMosaicSmall"
         },
         {
@@ -26,22 +52,53 @@
           "Next": "RenderMosaicMedium"
         }
       ],
-      "Default" : "RenderMosaicLarge"
+      "Default": "RenderMosaicLarge"
     },
     "RenderMosaicSmall": {
       "Type": "Task",
       "Resource": "${RenderMosaicSmallFunction.Arn}",
-      "Next": "NotifyCompletion"
+      "Next": "NotifyCompletion",
+      "Catch": [
+        {
+          "ErrorEquals": [ "OutOfMemoryException" ],
+          "ResultPath": "$.OutOfMemoryException",
+          "Next": "RenderMosaicMedium"
+        },
+        {
+          "ErrorEquals": [ "States.ALL" ],
+          "ResultPath": "$.Exception",
+          "Next": "NotifyCompletion"
+        }
+      ]
     },
     "RenderMosaicMedium": {
       "Type": "Task",
       "Resource": "${RenderMosaicMediumFunction.Arn}",
-      "Next": "NotifyCompletion"
+      "Next": "NotifyCompletion",
+      "Catch": [
+        {
+          "ErrorEquals": [ "OutOfMemoryException" ],
+          "ResultPath": "$.OutOfMemoryException",
+          "Next": "RenderMosaicLarge"
+        },
+        {
+          "ErrorEquals": [ "States.ALL" ],
+          "ResultPath": "$.Exception",
+          "Next": "NotifyCompletion"
+        }
+      ]
     },
     "RenderMosaicLarge": {
       "Type": "Task",
       "Resource": "${RenderMosaicLargeFunction.Arn}",
-      "Next": "NotifyCompletion"
+      "Next": "NotifyCompletion",
+      "Catch": [
+        {
+          "ErrorEquals": [ "States.ALL" ],
+          "ResultPath": "$.Exception",
+          "Next": "NotifyCompletion"
+        }
+      ]
     },
     "NotifyCompletion": {
       "Type": "Task",

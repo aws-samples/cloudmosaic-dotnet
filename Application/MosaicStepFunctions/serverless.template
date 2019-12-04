@@ -4,12 +4,41 @@
     "Description": "Defines an AWS Step Functions state machine, together with the Lambda functions used as tasks when the state machine runs. See state-machine.json for the actual machine definition.",
 
     "Parameters": {
+		"CommunicationConnectionsTable" : {
+		    "Type" : "AWS::SSM::Parameter::Value<String>",
+            "Default" : "/CloudMosaic/AppOptions/TableCommunicationConnection"
+		}
+
     },
 
     "Resources": {
 
+        "ModerateUserImageFunction": {
+            "Type": "AWS::Serverless::Function",
+            "Description" : "",
+            "Properties": {
+                "Handler": "ModerateUserImageFunction::ModerateUserImageFunction.Function::FunctionHandler",
+                "Role": {
+                    "Fn::GetAtt": [
+                        "LambdaRole",
+                        "Arn"
+                    ]
+                },
+                "Runtime": "dotnetcore2.1",
+                "MemorySize": 256,
+                "Timeout": 60,
+                "Environment" : {
+					"Variables" : {
+						"UNWRAP_AGGREGATE_EXCEPTIONS" : "true",
+                        "COMMUNICATION_CONNECTION_TABLE" : { "Ref" : "CommunicationConnectionsTable" }
+					}
+				},
+                "CodeUri" : "./ModerateUserImageFunction"
+            }
+        },
+
         "CreateColorMapFunction": {
-            "Type": "AWS::Lambda::Function",
+            "Type": "AWS::Serverless::Function",
             "Description" : "",
             "Properties": {
                 "Handler": "CreateColorMapFunction::CreateColorMapFunction.Function::FunctionHandler",
@@ -22,15 +51,18 @@
                 "Runtime": "dotnetcore2.1",
                 "MemorySize": 512,
                 "Timeout": 60,
-                "Code": {
-                    "S3Bucket": "",
-                    "S3Key": "./CreateColorMapFunction"
-                }
+                "Environment" : {
+					"Variables" : {
+						"UNWRAP_AGGREGATE_EXCEPTIONS" : "true",
+                        "COMMUNICATION_CONNECTION_TABLE" : { "Ref" : "CommunicationConnectionsTable" }
+					}
+				},
+                "CodeUri" : "./CreateColorMapFunction"
             }
         },
 
         "DetermineBestImagesFunction": {
-            "Type": "AWS::Lambda::Function",
+            "Type": "AWS::Serverless::Function",
             "Description" : "",
             "Properties": {
                 "Handler": "DetermineBestImagesFunction::DetermineBestImagesFunction::FunctionHandler",
@@ -43,15 +75,18 @@
                 "Runtime": "dotnetcore2.1",
                 "MemorySize": 512,
                 "Timeout": 600,
-                "Code": {
-                    "S3Bucket": "",
-                    "S3Key": "./DetermineBestImagesFunction"
-                }
+                "Environment" : {
+					"Variables" : {
+						"UNWRAP_AGGREGATE_EXCEPTIONS" : "true",
+                        "COMMUNICATION_CONNECTION_TABLE" : { "Ref" : "CommunicationConnectionsTable" }
+					}
+				},
+                "CodeUri" : "./DetermineBestImagesFunction"
             }
         },
 
         "RenderMosaicSmallFunction": {
-            "Type": "AWS::Lambda::Function",
+            "Type": "AWS::Serverless::Function",
             "Description" : "",
             "Properties": {
                 "Handler": "RenderMosaicFunction::RenderMosaicFunction.Function::FunctionHandler",
@@ -64,15 +99,18 @@
                 "Runtime": "dotnetcore2.1",
                 "MemorySize": 1024,
                 "Timeout": 600,
-                "Code": {
-                    "S3Bucket": "",
-                    "S3Key": "./RenderMosaicFunction"
-                }
+                "Environment" : {
+					"Variables" : {
+						"UNWRAP_AGGREGATE_EXCEPTIONS" : "true",
+                        "COMMUNICATION_CONNECTION_TABLE" : { "Ref" : "CommunicationConnectionsTable" }
+					}
+				},
+                "CodeUri" : "./RenderMosaicFunction"
             }
         },
 
         "RenderMosaicMediumFunction": {
-            "Type": "AWS::Lambda::Function",
+            "Type": "AWS::Serverless::Function",
             "Description" : "",
             "Properties": {
                 "Handler": "RenderMosaicFunction::RenderMosaicFunction.Function::FunctionHandler",
@@ -85,15 +123,18 @@
                 "Runtime": "dotnetcore2.1",
                 "MemorySize": 2048,
                 "Timeout": 600,
-                "Code": {
-                    "S3Bucket": "",
-                    "S3Key": "./RenderMosaicFunction"
-                }
+                "Environment" : {
+					"Variables" : {
+						"UNWRAP_AGGREGATE_EXCEPTIONS" : "true",
+                        "COMMUNICATION_CONNECTION_TABLE" : { "Ref" : "CommunicationConnectionsTable" }
+					}
+				},
+                "CodeUri" : "./RenderMosaicFunction"
             }
         },
 
         "RenderMosaicLargeFunction": {
-            "Type": "AWS::Lambda::Function",
+            "Type": "AWS::Serverless::Function",
             "Description" : "",
             "Properties": {
                 "Handler": "RenderMosaicFunction::RenderMosaicFunction.Function::FunctionHandler",
@@ -106,15 +147,18 @@
                 "Runtime": "dotnetcore2.1",
                 "MemorySize": 3008,
                 "Timeout": 600,
-                "Code": {
-                    "S3Bucket": "",
-                    "S3Key": "./RenderMosaicFunction"
-                }
+                "Environment" : {
+					"Variables" : {
+						"UNWRAP_AGGREGATE_EXCEPTIONS" : "true",
+                        "COMMUNICATION_CONNECTION_TABLE" : { "Ref" : "CommunicationConnectionsTable" }
+					}
+				},
+                "CodeUri" : "./RenderMosaicFunction"
             }
         },
 
         "NotifyCompletionFunction": {
-            "Type": "AWS::Lambda::Function",
+            "Type": "AWS::Serverless::Function",
             "Description" : "",
             "Properties": {
                 "Handler": "NotifyCompletionFunction::NotifyCompletionFunction.Function::FunctionHandler",
@@ -127,10 +171,13 @@
                 "Runtime": "dotnetcore2.1",
                 "MemorySize": 128,
                 "Timeout": 30,
-                "Code": {
-                    "S3Bucket": "",
-                    "S3Key": "./NotifyCompletionFunction"
-                }
+                "Environment" : {
+					"Variables" : {
+						"UNWRAP_AGGREGATE_EXCEPTIONS" : "true",
+                        "COMMUNICATION_CONNECTION_TABLE" : { "Ref" : "CommunicationConnectionsTable" }
+					}
+				},
+                "CodeUri" : "./NotifyCompletionFunction"
             }
         },
 
@@ -173,8 +220,13 @@
                 "ManagedPolicyArns": [
                     "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole",
                     "arn:aws:iam::aws:policy/AmazonS3FullAccess",
-                    "arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess"
-                ]
+                    "arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess",
+					"arn:aws:iam::aws:policy/AmazonAPIGatewayInvokeFullAccess",
+					"arn:aws:iam::aws:policy/AmazonRekognitionReadOnlyAccess"
+                ],
+                "Policies" : [
+					
+				]
             }
         },
 

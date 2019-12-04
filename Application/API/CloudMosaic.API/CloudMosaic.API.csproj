@@ -1,0 +1,44 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <AWSProjectType>Lambda</AWSProjectType>
+    <AssemblyName>bootstrap</AssemblyName>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <WarningsAsErrors>NU1605</WarningsAsErrors>
+    <NoWarn>1701;1702;1591</NoWarn>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <WarningsAsErrors>NU1605</WarningsAsErrors>
+    <NoWarn>1701;1702;1591</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+
+    <PackageReference Include="Amazon.Extensions.Configuration.SystemsManager" Version="1.0.1" />
+    <PackageReference Include="Amazon.Lambda.AspNetCoreServer" Version="4.0.0" />
+    <PackageReference Include="Amazon.Lambda.RuntimeSupport" Version="1.0.0" />
+
+    <PackageReference Include="AWSSDK.Batch" Version="3.3.100" />
+    <PackageReference Include="AWSSDK.CognitoIdentityProvider" Version="3.3.100" />
+    <PackageReference Include="AWSSDK.DynamoDBv2" Version="3.3.101.88" />
+    <PackageReference Include="AWSSDK.Extensions.NETCore.Setup" Version="3.3.100.1" />
+    <PackageReference Include="AWSSDK.StepFunctions" Version="3.3.100" />
+    <PackageReference Include="AWSSDK.S3" Version="3.3.106.4" />
+    <PackageReference Include="AWSXRayRecorder.Handlers.AspNetCore" Version="2.6.1" />
+    <PackageReference Include="AWSXRayRecorder.Handlers.AwsSdk" Version="2.7.1" />
+
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="3.1.0" />
+
+    <PackageReference Include="NSwag.AspNetCore" Version="13.1.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\CloudMosaic.Common\CloudMosaic.Common.csproj" />
+  </ItemGroup>
+
+</Project>

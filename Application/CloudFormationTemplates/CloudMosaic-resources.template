@@ -2,7 +2,42 @@
     "AWSTemplateFormatVersion": "2010-09-09",
     "Description": "Stands up resources needed to support the CloudMosaic demo application.",
 
-    "Parameters": {},
+    "Parameters": {
+
+		"DnsName" : {
+		    "Type" : "String",
+            "Default" : "",
+            "MinLength" : "0",
+            "Description" : "Optional DNS Host name that is assigned to the load balancer."
+		},
+
+		"LoadbalancerCertificateArn" : {
+		    "Type" : "String",
+            "Default" : "",
+            "MinLength" : "0",
+            "Description" : "Optional certificate arn from ACM. If set an HTTPS listner will be configured."
+		}
+	},
+
+    "Conditions" : {
+		"UseHttps" : {
+		   "Fn::Not" : [{
+			  "Fn::Equals" : [
+				 {"Ref" : "LoadbalancerCertificateArn"},
+				 ""
+			  ]
+		   }]
+		},
+
+		"HasDnsName" : {
+		   "Fn::Not" : [{
+			  "Fn::Equals" : [
+				 {"Ref" : "DnsName"},
+				 ""
+			  ]
+		   }]
+		}
+	},
 
     "Resources": {
 
@@ -25,22 +60,41 @@
                     {
                         "AttributeName": "GalleryId",
                         "AttributeType": "S"
-                    }
+                    },
+					{
+						"AttributeName" : "Sharing",
+                        "AttributeType" : "N"
+					}
                 ],
                 "KeySchema": [
-                    {
-                        "AttributeName": "UserId",
-                        "KeyType": "HASH"
-                    },
-                    {
-                        "AttributeName": "GalleryId",
-                        "KeyType": "RANGE"
-                    }
+					{
+						"AttributeName": "UserId",
+						"KeyType": "HASH"
+					},
+					{
+						"AttributeName": "GalleryId",
+						"KeyType": "RANGE"
+					}
                 ],
-                "ProvisionedThroughput": {
-                    "ReadCapacityUnits": "10",
-                    "WriteCapacityUnits": "1"
-                },
+                "LocalSecondaryIndexes" : [
+					{
+						"IndexName" : "SharingState",
+                        "KeySchema" : [
+							{
+								"AttributeName" : "UserId",
+                                "KeyType" : "HASH"
+							},
+							{
+								"AttributeName" : "Sharing",
+                                "KeyType" : "RANGE"
+							}
+						],
+                        "Projection" : {
+							"ProjectionType" : "ALL"
+						}
+					}
+				],
+                "BillingMode" : "PAY_PER_REQUEST",
                 "TableName": {
                     "Fn::Join": [
                         "-",
@@ -79,10 +133,10 @@
                         "KeyType": "RANGE"
                     }
                 ],
-                "ProvisionedThroughput": {
-                    "ReadCapacityUnits": "30",
-                    "WriteCapacityUnits": "30"
-                },
+                "BillingMode" : "PAY_PER_REQUEST",
+                "StreamSpecification" : {
+					"StreamViewType" : "KEYS_ONLY"
+				},
                 "TableName": {
                     "Fn::Join": [
                         "-",
@@ -112,19 +166,16 @@
                     }
                 ],
                 "KeySchema": [
-                    {
-                        "AttributeName": "UserId",
-                        "KeyType": "HASH"
-                    },
-                    {
-                        "AttributeName": "MosaicId",
-                        "KeyType": "RANGE"
-                    }
+					{
+						"AttributeName": "UserId",
+						"KeyType": "HASH"
+					},
+					{
+						"AttributeName": "MosaicId",
+						"KeyType": "RANGE"
+					}
                 ],
-                "ProvisionedThroughput": {
-                    "ReadCapacityUnits": "5",
-                    "WriteCapacityUnits": "5"
-                },
+                "BillingMode" : "PAY_PER_REQUEST",
                 "TableName": {
                     "Fn::Join": [
                         "-",
@@ -139,8 +190,58 @@
             }
         },
 
+        "TableCommunicationConnection": {
+            "Type": "AWS::DynamoDB::Table",
+            "Description": "",
+            "Properties": {
+                "AttributeDefinitions": [
+                    {
+                        "AttributeName": "connectionId",
+                        "AttributeType": "S"
+                    },
+					{
+						"AttributeName" : "username",
+                        "AttributeType" : "S"
+					}
+                ],
+                "KeySchema": [
+					{
+						"AttributeName": "connectionId",
+						"KeyType": "HASH"
+					}
+                ],
+                "GlobalSecondaryIndexes" : [
+					{
+						"IndexName" : "username",
+                        "KeySchema" : [
+							{
+								"AttributeName" : "username",
+                                "KeyType" : "HASH"
+							}
+						],
+                        "Projection" : {
+							"ProjectionType" : "ALL"
+						}
+					}
+				],
+                "BillingMode" : "PAY_PER_REQUEST",
+                "TableName": {
+                    "Fn::Join": [
+                        "-",
+                        [
+                            {
+                                "Ref": "AWS::StackName"
+                            },
+                            "CommunicationConnections"
+                        ]
+                    ]
+                }
+            }
+        },
+
         "ZipExpanderConsoleRepository": {
             "Type": "AWS::ECR::Repository",
+            "DeletionPolicy" : "Retain",
             "Description": "Repository holding the deployed ZipExpanderConsole images.",
             "Properties": {}
         },
@@ -353,7 +454,8 @@
                     "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role",
                     "arn:aws:iam::aws:policy/AmazonS3FullAccess",
                     "arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess",
-                    "arn:aws:iam::aws:policy/AmazonRekognitionFullAccess"
+                    "arn:aws:iam::aws:policy/AmazonRekognitionFullAccess",
+					"arn:aws:iam::aws:policy/AmazonAPIGatewayInvokeFullAccess"
                 ]
             }
         },
@@ -395,7 +497,7 @@
                         "optimal"
                     ],
                     "MaxvCpus": "256",
-                    "MinvCpus": "0",
+                    "MinvCpus": "4",
                     "SecurityGroupIds": [
                         {
                             "Ref": "BatchSecurityGroup"
@@ -463,7 +565,10 @@
                         ]
                     },
                     "Memory": "1024",
-                    "Vcpus": "1"
+                    "Vcpus": "1",
+                    "Environment" : [
+						{"Name" : "COMMUNICATION_CONNECTION_TABLE", "Value" : { "Ref" : "TableCommunicationConnection" }}
+					]
                 },
                 "Type": "container"
             }
@@ -489,11 +594,8 @@
                 "ManagedPolicyArns": [
                     "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role",
                     "arn:aws:iam::aws:policy/AmazonS3FullAccess",
-                    "arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess",
-                    "arn:aws:iam::aws:policy/AWSBatchFullAccess",
                     "arn:aws:iam::aws:policy/AmazonSSMReadOnlyAccess",
                     "arn:aws:iam::aws:policy/CloudWatchLogsFullAccess",
-                    "arn:aws:iam::aws:policy/AWSStepFunctionsFullAccess",
                     "arn:aws:iam::aws:policy/AmazonCognitoPowerUser"
                 ],
                 "Policies": [ 
@@ -552,6 +654,12 @@
                         "FromPort": "80",
                         "ToPort": "80",
                         "IpProtocol": "tcp"
+                    },
+                    {
+                        "CidrIp": "0.0.0.0/0",
+                        "FromPort": "443",
+                        "ToPort": "443",
+                        "IpProtocol": "tcp"
                     }
                 ]
             }
@@ -605,6 +713,39 @@
             "Type": "AWS::ElasticLoadBalancingV2::Listener",
             "Description": "",
             "Properties": {
+                "DefaultActions" : { "Fn::If" : ["UseHttps", 
+						[
+							{
+								"RedirectConfig" : {
+									"Protocol" : "HTTPS",
+									"Port" : "443",
+									"StatusCode" : "HTTP_302"
+								},                        
+								"Type": "redirect"
+							}
+						], 
+						[
+							{
+								"TargetGroupArn": {
+									"Ref": "DefaultTargetGroup"
+								},
+                                "Type" : "forward"
+							}
+						]
+					]					
+				},
+                "LoadBalancerArn": {
+                    "Ref": "LoadBalancer"
+                },
+                "Port": "80",
+                "Protocol": "HTTP"
+            }
+        },
+
+        "HttpsListener" : {
+            "Type" : "AWS::ElasticLoadBalancingV2::Listener",
+            "Condition" : "UseHttps",
+            "Properties" : {
                 "DefaultActions": [
                     {
                         "TargetGroupArn": {
@@ -616,8 +757,11 @@
                 "LoadBalancerArn": {
                     "Ref": "LoadBalancer"
                 },
-                "Port": "80",
-                "Protocol": "HTTP"
+                "Port"            : "443",
+                "Protocol"        : "HTTPS",
+                "Certificates" : [
+					{"CertificateArn" : { "Ref" : "LoadbalancerCertificateArn" }}
+				]
             }
         },
 
@@ -627,12 +771,26 @@
             "Properties": {
                 "Port": "80",
                 "Protocol": "HTTP",
-                "TargetGroupAttributes": [],
+                "TargetGroupAttributes": [
+					{"Key" : "stickiness.enabled", "Value" : "true" },
+					{"Key" : "stickiness.type", "Value" : "lb_cookie" }
+				],
                 "Targets": [],
                 "VpcId": {
                     "Ref": "MosaicVpc"
                 },
-                "TargetType": "ip"
+                "TargetType": "ip",				
+                "Name": {
+                    "Fn::Join": [
+                        "-",
+                        [
+                            {
+                                "Ref": "AWS::StackName"
+                            },
+                            "MosaicDefault"
+                        ]
+                    ]
+                }
             }
         },
 
@@ -681,6 +839,18 @@
                     "Ref": "TableMosaic"
                 },
                 "Name": "/CloudMosaic/AppOptions/TableMosaic"
+            }
+        },
+
+        "ParameterTableCommunicationConnections": {
+            "Type": "AWS::SSM::Parameter",
+            "Description": "Stores the connection ids for the websocket connections made in the client.",
+            "Properties": {
+                "Type": "String",
+                "Value": {
+                    "Ref": "TableCommunicationConnection"
+                },
+                "Name": "/CloudMosaic/AppOptions/TableCommunicationConnection"
             }
         },
 
@@ -762,6 +932,38 @@
                     "Ref": "ECSSecurityGroup"
                 },
                 "Name": "/CloudMosaic/ECSSecurityGroup"
+            }
+        },
+
+        "ParameterVpc": {
+            "Type": "AWS::SSM::Parameter",
+            "Description": "Stores the ID of the VPC into Parameter Store.",
+            "Properties": {
+                "Type": "String",
+                "Value": {
+                    "Ref": "MosaicVpc"
+                },
+                "Name": "/CloudMosaic/Vpc"
+            }
+        },
+
+        "ParameterLoadBalancerHost": {
+            "Type": "AWS::SSM::Parameter",
+            "Description": "The host of the load balancer.",
+            "Properties": {
+                "Type": "String",
+                "Name": "/CloudMosaic/LoadBalancerHost",
+                "Value" : { "Fn::If" : ["HasDnsName", {"Fn::Join" : [ "", ["https://", {"Ref" : "DnsName" }, "/"]]}, {"Fn::Join" : [ "", ["http://", {"Fn::GetAtt" : [ "LoadBalancer", "DNSName"]}, "/" ] ]}] }
+            }
+        },
+
+        "ParameterLoadBalancerListener": {
+            "Type": "AWS::SSM::Parameter",
+            "Description": "Stores the ID of the VPC into Parameter Store.",
+            "Properties": {
+                "Type": "String",
+                "Name": "/CloudMosaic/LoadBalancerListener",
+                "Value" : { "Fn::If" : ["UseHttps", {"Ref": "HttpsListener"}, {"Ref": "HttpListener"}] }
             }
         },
 
@@ -908,18 +1110,5 @@
     },
 
     "Outputs": {
-        "JobDefinitionArn": {
-            "Description": "",
-            "Value": {
-                "Ref": "ZipExpanderJobDefinition"
-            }
-        },
-
-        "JobQueueArn": {
-            "Description": "",
-            "Value": {
-                "Ref": "ZipExpanderJobQueue"
-            }
-        }
     }
 }

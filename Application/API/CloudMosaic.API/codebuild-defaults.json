@@ -1,0 +1,6 @@
+{
+  "s3-prefix": "CloudMosaic.API/",
+  "template": "serverless.template",
+  "msbuild-parameters": "--self-contained true /p:PublishReadyToRun=true",
+  "framework": "netcoreapp3.1"
+}

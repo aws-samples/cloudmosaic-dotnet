@@ -5,13 +5,15 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="AWSSDK.S3" Version="3.3.100" />
+    <PackageReference Include="Amazon.Lambda.Core" Version="1.1.0" />
+    <PackageReference Include="AWSSDK.S3" Version="3.3.106.4" />
     <PackageReference Include="SixLabors.ImageSharp" Version="1.0.0-beta0005" />
-    <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\CloudMosaic.Common\CloudMosaic.Common.csproj" />
+    <ProjectReference Include="..\..\Communication\CloudMosaic.Communication.Manager\CloudMosaic.Communication.Manager.csproj" />
   </ItemGroup>
   
 </Project>

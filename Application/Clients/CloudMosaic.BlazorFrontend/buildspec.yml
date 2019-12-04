@@ -1,0 +1,21 @@
+version: 0.2
+
+env:
+    parameter-store:
+        DOCKER_TAG: "/CloudMosaic/FrontendTag"
+        DOCKER_REPO: "/CloudMosaic/FrontendRepository"
+phases:
+  install:
+    commands:
+      - dotnet tool install -g Amazon.ECS.Tools
+  build:
+    commands:
+      - cd ./Application/Clients/CloudMosaic.BlazorFrontend
+      - /root/.dotnet/tools/dotnet-ecs push-image --config-file codebuild-defaults.json --tag $DOCKER_TAG
+  post_build:
+    commands:
+      - printf '[{"name":"CloudMosaicBlazerFrontend","imageUri":"%s"}]' $DOCKER_REPO > imagedefinitions.json
+artifacts:
+  files:
+    - ./Application/Clients/CloudMosaic.BlazorFrontend/imagedefinitions.json
+  discard-paths: yes

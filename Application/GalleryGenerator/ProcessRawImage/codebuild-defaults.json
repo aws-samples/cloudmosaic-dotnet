@@ -1,0 +1,5 @@
+{
+  "s3-prefix": "ProcessRawImage/",
+  "template": "serverless.template",
+  "framework": "netcoreapp2.1"
+}

@@ -1,0 +1,683 @@
+{
+	"AWSTemplateFormatVersion" : "2010-09-09",
+
+	"Description" : "",
+
+	"Parameters" : {
+
+
+		 "GitHubOwner" : {
+		     "Type" : "String",
+             "Default" : "",
+             "Description" : "GitHub repository owner"
+		 },
+		 "GitHubRepo" : {
+		     "Type" : "String",
+             "Default" : "",
+             "Description" : "GitHub repository name"
+		 },
+		 "GitHubBranch" : {
+		     "Type" : "String",
+             "Default" : "",
+             "Description" : "GitHub repository branch"
+		 },
+		 "GitHubToken" : {
+		     "Type" : "String",
+			 "Description" : "GitHub repository OAuth token"
+		 },
+
+        "FrontendCluster" : {
+            "Type" : "AWS::SSM::Parameter::Value<String>",
+            "Default" : "/CloudMosaic/FrontendCluster"
+        }
+	},
+
+	"Resources" : {
+
+
+		"CodePipelineRole":{
+		  "Type":"AWS::IAM::Role",
+		  "Properties":{
+			"AssumeRolePolicyDocument":{
+			  "Statement":[
+				{
+				  "Effect":"Allow",
+				  "Principal":{
+					"Service":[
+					  "codepipeline.amazonaws.com"
+					]
+				  },
+				  "Action":[
+					"sts:AssumeRole"
+				  ]
+				}
+			  ]
+			},
+			"Path":"/",
+			"ManagedPolicyArns" : [
+				"arn:aws:iam::aws:policy/AWSCodeBuildDeveloperAccess",
+				"arn:aws:iam::aws:policy/AdministratorAccess"
+			],
+			"Policies":[
+			  {
+				"PolicyName":"codepipeline-service",
+				"PolicyDocument":{
+				  "Statement":[
+					{
+					  "Action":[
+						"codecommit:GetBranch",
+						"codecommit:GetCommit",
+						"codecommit:UploadArchive",
+						"codecommit:GetUploadArchiveStatus",
+						"codecommit:CancelUploadArchive"
+					  ],
+					  "Resource":"*",
+					  "Effect":"Allow"
+					}
+				  ],
+				  "Version":"2012-10-17"
+				}
+			  }
+			]
+		  }
+		},
+
+        "CodeBuildRole" : {
+            "Type" : "AWS::IAM::Role",
+            "Properties" : {
+                "AssumeRolePolicyDocument" : {
+				  "Statement":[
+					{
+					  "Effect":"Allow",
+					  "Principal":{
+						"Service":[
+						  "codebuild.amazonaws.com"
+						]
+					  },
+					  "Action":[
+						"sts:AssumeRole"
+					  ]
+					}
+				  ]
+                },
+                "ManagedPolicyArns" : [
+					"arn:aws:iam::aws:policy/PowerUserAccess"
+				]
+            }
+        },
+
+        "CloudFormationRole" : {
+            "Type" : "AWS::IAM::Role",
+            "Properties" : {
+                "AssumeRolePolicyDocument" : {
+				  "Statement":[
+					{
+					  "Effect":"Allow",
+					  "Principal":{
+						"Service":[
+						  "cloudformation.amazonaws.com"
+						]
+					  },
+					  "Action":[
+						"sts:AssumeRole"
+					  ]
+					}
+				  ]
+                },
+                "ManagedPolicyArns" : [
+					"arn:aws:iam::aws:policy/AdministratorAccess"
+				]
+            }
+        },
+
+
+
+		"MosaicArtifactStore" : {
+		    "Type" : "AWS::S3::Bucket",
+		    "Properties" : {
+		    }
+		},
+
+		"ParameterMosaicArtifactStore" : {
+            "Type" : "AWS::SSM::Parameter",
+            "Properties" : {
+                "Type" : "String",
+                "Value" : {"Ref" : "MosaicArtifactStore"},
+                "Name" : "/CloudMosaic/MosaicArtifactStore"
+            }
+        },
+
+		"ZipExpanderImageBuild" : {
+		    "Type" : "AWS::CodeBuild::Project",
+		    "Properties" : {
+		        "Artifacts" : {
+					"Type" : "CODEPIPELINE"
+		        },
+		        "Name"      : {"Fn::Join" : [ "", [{ "Ref" : "AWS::StackName" }, "-ZipExpanderImage" ] ]},
+		        "ServiceRole" : { "Ref" : "CodeBuildRole" },
+                "Environment" : {
+					"ComputeType" : "BUILD_GENERAL1_MEDIUM",
+                    "Type" : "LINUX_CONTAINER",
+                    "Image" : "aws/codebuild/dot-net:core-2.1",
+                    "PrivilegedMode" : true
+				},
+		        "Source"      : {
+		            "BuildSpec" : "Application/GalleryGenerator/ZipExpanderConsole/buildspec.yml",
+		            "Type"      : "CODEPIPELINE"
+		        }
+		    }
+		},
+
+		"ProcessRawImageBuild" : {
+		    "Type" : "AWS::CodeBuild::Project",
+		    "Properties" : {
+		        "Artifacts" : {
+					"Type" : "CODEPIPELINE"
+		        },
+		        "Name"      : {"Fn::Join" : [ "", [{ "Ref" : "AWS::StackName" }, "-ProcessRawImage" ] ]},
+		        "ServiceRole" : { "Ref" : "CodeBuildRole" },
+                "Environment" : {
+					"ComputeType" : "BUILD_GENERAL1_SMALL",
+                    "Type" : "LINUX_CONTAINER",
+                    "Image" : "aws/codebuild/dot-net:core-2.1",
+                    "PrivilegedMode" : true
+				},
+		        "Source"      : {
+		            "BuildSpec" : "Application/GalleryGenerator/ProcessRawImage/buildspec.yml",
+		            "Type"      : "CODEPIPELINE"
+		        }
+		    }
+		},
+
+		"GalleryItemStreamProcessorBuild" : {
+		    "Type" : "AWS::CodeBuild::Project",
+		    "Properties" : {
+		        "Artifacts" : {
+					"Type" : "CODEPIPELINE"
+		        },
+		        "Name"      : {"Fn::Join" : [ "", [{ "Ref" : "AWS::StackName" }, "-GalleryItemStreamProcessor" ] ]},
+		        "ServiceRole" : { "Ref" : "CodeBuildRole" },
+                "Environment" : {
+					"ComputeType" : "BUILD_GENERAL1_SMALL",
+                    "Type" : "LINUX_CONTAINER",
+                    "Image" : "aws/codebuild/dot-net:core-2.1",
+                    "PrivilegedMode" : true
+				},
+		        "Source"      : {
+		            "BuildSpec" : "Application/GalleryGenerator/GalleryItemStreamProcessor/buildspec.yml",
+		            "Type"      : "CODEPIPELINE"
+		        }
+		    }
+		},
+
+		"MosaicStepFunctionsBuild" : {
+		    "Type" : "AWS::CodeBuild::Project",
+		    "Properties" : {
+		        "Artifacts" : {
+					"Type" : "CODEPIPELINE"
+		        },
+		        "Name"      : {"Fn::Join" : [ "", [{ "Ref" : "AWS::StackName" }, "-MosaicStepFunctions" ] ]},
+		        "ServiceRole" : { "Ref" : "CodeBuildRole" },
+                "Environment" : {
+					"ComputeType" : "BUILD_GENERAL1_SMALL",
+                    "Type" : "LINUX_CONTAINER",
+                    "Image" : "aws/codebuild/dot-net:core-2.1",
+                    "PrivilegedMode" : true
+				},
+		        "Source"      : {
+		            "BuildSpec" : "Application/MosaicStepFunctions/buildspec.yml",
+		            "Type"      : "CODEPIPELINE"
+		        }
+		    }
+		},
+
+		"MosaicCommunicationsBuild" : {
+		    "Type" : "AWS::CodeBuild::Project",
+		    "Properties" : {
+		        "Artifacts" : {
+					"Type" : "CODEPIPELINE"
+		        },
+		        "Name"      : {"Fn::Join" : [ "", [{ "Ref" : "AWS::StackName" }, "-MosaicCommunications" ] ]},
+		        "ServiceRole" : { "Ref" : "CodeBuildRole" },
+                "Environment" : {
+					"ComputeType" : "BUILD_GENERAL1_SMALL",
+                    "Type" : "LINUX_CONTAINER",
+                    "Image" : "aws/codebuild/dot-net:core-2.1",
+                    "PrivilegedMode" : true
+				},
+		        "Source"      : {
+		            "BuildSpec" : "Application/Communication/CloudMosaic.Communication.Functions/buildspec.yml",
+		            "Type"      : "CODEPIPELINE"
+		        }
+		    }
+		},
+
+		"MosaicAPIBuild" : {
+		    "Type" : "AWS::CodeBuild::Project",
+		    "Properties" : {
+		        "Artifacts" : {
+					"Type" : "CODEPIPELINE"
+		        },
+		        "Name"      : {"Fn::Join" : [ "", [{ "Ref" : "AWS::StackName" }, "-Frontend" ] ]},
+		        "ServiceRole" : { "Ref" : "CodeBuildRole" },
+                "Environment" : {
+					"ComputeType" : "BUILD_GENERAL1_MEDIUM",
+                    "Type" : "LINUX_CONTAINER",
+                    "Image" : "mcr.microsoft.com/dotnet/core/sdk:3.1",                    
+                    "PrivilegedMode" : true
+				},
+		        "Source"      : {
+		            "BuildSpec" : "Application/API/CloudMosaic.API/buildspec.yml",
+		            "Type"      : "CODEPIPELINE"
+		        }
+		    }
+		},
+
+		"MosaicBlazerFrontendBuild" : {
+		    "Type" : "AWS::CodeBuild::Project",
+		    "Properties" : {
+		        "Artifacts" : {
+					"Type" : "CODEPIPELINE"
+		        },
+		        "Name"      : {"Fn::Join" : [ "", [{ "Ref" : "AWS::StackName" }, "-Blazer" ] ]},
+		        "ServiceRole" : { "Ref" : "CodeBuildRole" },
+                "Environment" : {
+					"ComputeType" : "BUILD_GENERAL1_MEDIUM",
+                    "Type" : "LINUX_CONTAINER",
+                    "Image" : "aws/codebuild/dot-net:core-2.1",                    
+                    "PrivilegedMode" : true
+				},
+		        "Source"      : {
+		            "BuildSpec" : "Application/Clients/CloudMosaic.BlazorFrontend/buildspec.yml",
+		            "Type"      : "CODEPIPELINE"
+		        }
+		    }
+		},
+
+        "Pipeline" : {
+            "Type" : "AWS::CodePipeline::Pipeline",
+            "Properties" : {
+                "ArtifactStore" : {
+                    "Location" : { "Ref" : "MosaicArtifactStore" },
+                    "Type"     : "S3"
+                },
+                "RoleArn"       : {"Fn::GetAtt" : [ "CodePipelineRole", "Arn"]},
+                "Stages"        : [
+					{
+						"Name" : "Source",
+                        "Actions" : [
+							{
+							"Name": "GitHub",
+							"ActionTypeId": {
+							  "Category": "Source",
+							  "Version": "1",
+							  "Owner": "ThirdParty",
+							  "Provider": "GitHub"
+							},
+							"Configuration": {
+							  "Owner": {
+								"Ref": "GitHubOwner"
+							  },
+							  "Repo": {
+								"Ref": "GitHubRepo"
+							  },
+							  "Branch": {
+								"Ref": "GitHubBranch"
+							  },
+							  "OAuthToken": {
+								"Ref": "GitHubToken"
+							  }
+							},
+							"InputArtifacts": [
+                  
+							],
+							"OutputArtifacts": [
+							  {
+								"Name": "TheSource"
+							  }
+							],
+							"RunOrder": 1
+						  }
+						]
+					},
+					{
+						"Name" : "Mosaic-Communications",
+                        "Actions" : [
+							{
+								"Name" : "Build-Communications",
+								"ActionTypeId" : {
+									"Category" : "Build",
+                                    "Provider" : "CodeBuild",
+                                    "Owner" : "AWS",
+                                    "Version" : "1"
+								},
+                                "InputArtifacts" : [
+									{
+										"Name" : "TheSource"
+									}
+								],
+                                "OutputArtifacts" : [
+									{
+										"Name" : "MosaicCommunicationsBundle"
+									}
+								],
+								"Configuration" : {
+									"ProjectName" : { "Ref" : "MosaicCommunicationsBuild" }
+								},
+                                "RunOrder" : 1
+							},
+							{
+								"Name" : "CF-MosaicCommunications",
+								"ActionTypeId" : {
+									"Category" : "Deploy",
+                                    "Provider" : "CloudFormation",
+                                    "Owner" : "AWS",
+                                    "Version" : "1"
+								},
+                                "InputArtifacts" : [
+									{
+										"Name" : "MosaicCommunicationsBundle"
+									}
+								],
+								"Configuration" : {
+									"ActionMode" : "CREATE_UPDATE",
+									"StackName"  : {"Fn::Join" : [ "", [{ "Ref" : "AWS::StackName" }, "-Communications" ] ]},
+									"Capabilities" : "CAPABILITY_IAM,CAPABILITY_AUTO_EXPAND",
+									"RoleArn" : {"Fn::GetAtt" : [ "CloudFormationRole", "Arn"]},
+									"TemplatePath" : "MosaicCommunicationsBundle::updated.template"
+								},
+                                "RunOrder" : 2
+							}
+						]
+					},
+					{
+						"Name" : "Tile-Gallery-Processor",
+                        "Actions" : [
+							{
+								"Name" : "Build-ProcessRawImage",
+								"ActionTypeId" : {
+									"Category" : "Build",
+                                    "Provider" : "CodeBuild",
+                                    "Owner" : "AWS",
+                                    "Version" : "1"
+								},
+                                "InputArtifacts" : [
+									{
+										"Name" : "TheSource"
+									}
+								],
+                                "OutputArtifacts" : [
+									{
+										"Name" : "ProcessRawImageBundle"
+									}
+								],
+								"Configuration" : {
+									"ProjectName" : { "Ref" : "ProcessRawImageBuild" }
+								},
+                                "RunOrder" : 1
+							},
+							{
+								"Name" : "Build-GalleryItemStreamProcessor",
+								"ActionTypeId" : {
+									"Category" : "Build",
+                                    "Provider" : "CodeBuild",
+                                    "Owner" : "AWS",
+                                    "Version" : "1"
+								},
+                                "InputArtifacts" : [
+									{
+										"Name" : "TheSource"
+									}
+								],
+                                "OutputArtifacts" : [
+									{
+										"Name" : "GalleryItemStreamProcessorBundle"
+									}
+								],
+								"Configuration" : {
+									"ProjectName" : { "Ref" : "GalleryItemStreamProcessorBuild" }
+								},
+                                "RunOrder" : 1
+							},
+							{
+								"Name" : "Build-ZipExpanderImage",
+								"ActionTypeId" : {
+									"Category" : "Build",
+                                    "Provider" : "CodeBuild",
+                                    "Owner" : "AWS",
+                                    "Version" : "1"
+								},
+                                "InputArtifacts" : [
+									{
+										"Name" : "TheSource"
+									}
+								],
+                                "Configuration" : {
+									"ProjectName" : { "Ref" : "ZipExpanderImageBuild" }
+								},
+                                "RunOrder" : 1
+							},
+							{
+								"Name" : "CF-ProcessRawImage",
+								"ActionTypeId" : {
+									"Category" : "Deploy",
+                                    "Provider" : "CloudFormation",
+                                    "Owner" : "AWS",
+                                    "Version" : "1"
+								},
+                                "InputArtifacts" : [
+									{
+										"Name" : "ProcessRawImageBundle"
+									}
+								],
+								"Configuration" : {
+									"ActionMode" : "CREATE_UPDATE",
+									"StackName"  : {"Fn::Join" : [ "", [{ "Ref" : "AWS::StackName" }, "-ProcessRawImage" ] ]},
+									"Capabilities" : "CAPABILITY_IAM,CAPABILITY_AUTO_EXPAND",
+									"RoleArn" : {"Fn::GetAtt" : [ "CloudFormationRole", "Arn"]},
+									"TemplatePath" : "ProcessRawImageBundle::updated.template"
+								},
+                                "RunOrder" : 2
+							},
+							{
+								"Name" : "CF-GalleryItemStreamProcessor",
+								"ActionTypeId" : {
+									"Category" : "Deploy",
+                                    "Provider" : "CloudFormation",
+                                    "Owner" : "AWS",
+                                    "Version" : "1"
+								},
+                                "InputArtifacts" : [
+									{
+										"Name" : "GalleryItemStreamProcessorBundle"
+									}
+								],
+								"Configuration" : {
+									"ActionMode" : "CREATE_UPDATE",
+									"StackName"  : {"Fn::Join" : [ "", [{ "Ref" : "AWS::StackName" }, "-GalleryItemStreamProcessor" ] ]},
+									"Capabilities" : "CAPABILITY_IAM,CAPABILITY_AUTO_EXPAND",
+									"RoleArn" : {"Fn::GetAtt" : [ "CloudFormationRole", "Arn"]},
+									"TemplatePath" : "GalleryItemStreamProcessorBundle::updated.template"
+								},
+                                "RunOrder" : 2
+							}
+						]
+					},
+					{
+						"Name" : "Mosaic-Render-Step-Function",
+                        "Actions" : [
+							{
+								"Name" : "Build-MosaicStepFunctions",
+								"ActionTypeId" : {
+									"Category" : "Build",
+                                    "Provider" : "CodeBuild",
+                                    "Owner" : "AWS",
+                                    "Version" : "1"
+								},
+                                "InputArtifacts" : [
+									{
+										"Name" : "TheSource"
+									}
+								],
+                                "OutputArtifacts" : [
+									{
+										"Name" : "MosaicStepFunctionsBundle"
+									}
+								],
+								"Configuration" : {
+									"ProjectName" : { "Ref" : "MosaicStepFunctionsBuild" }
+								},
+                                "RunOrder" : 1
+							},
+							{
+								"Name" : "CF-MosaicStepFunctions",
+								"ActionTypeId" : {
+									"Category" : "Deploy",
+                                    "Provider" : "CloudFormation",
+                                    "Owner" : "AWS",
+                                    "Version" : "1"
+								},
+                                "InputArtifacts" : [
+									{
+										"Name" : "MosaicStepFunctionsBundle"
+									}
+								],
+								"Configuration" : {
+									"ActionMode" : "CREATE_UPDATE",
+									"StackName"  : {"Fn::Join" : [ "", [{ "Ref" : "AWS::StackName" }, "-MosaicStepFunctions" ] ]},
+									"Capabilities" : "CAPABILITY_IAM,CAPABILITY_AUTO_EXPAND",
+									"RoleArn" : {"Fn::GetAtt" : [ "CloudFormationRole", "Arn"]},
+									"TemplatePath" : "MosaicStepFunctionsBundle::updated.template"
+								},
+                                "RunOrder" : 2
+							}
+						]
+					},
+					{
+						"Name" : "Mosaic-API",
+                        "Actions" : [
+							{
+								"Name" : "Build-API",
+								"ActionTypeId" : {
+									"Category" : "Build",
+                                    "Provider" : "CodeBuild",
+                                    "Owner" : "AWS",
+                                    "Version" : "1"
+								},
+                                "InputArtifacts" : [
+									{
+										"Name" : "TheSource"
+									}
+								],
+                                "OutputArtifacts" : [
+									{
+										"Name" : "MosaicAPIBundle"
+									}
+								],
+								"Configuration" : {
+									"ProjectName" : { "Ref" : "MosaicAPIBuild" }
+								},
+                                "RunOrder" : 1
+							},
+							{
+								"Name" : "CF-MosaicAPI",
+								"ActionTypeId" : {
+									"Category" : "Deploy",
+                                    "Provider" : "CloudFormation",
+                                    "Owner" : "AWS",
+                                    "Version" : "1"
+								},
+                                "InputArtifacts" : [
+									{
+										"Name" : "MosaicAPIBundle"
+									}
+								],
+								"Configuration" : {
+									"ActionMode" : "CREATE_UPDATE",
+									"StackName"  : {"Fn::Join" : [ "", [{ "Ref" : "AWS::StackName" }, "-MosaicAPI" ] ]},
+									"Capabilities" : "CAPABILITY_IAM,CAPABILITY_AUTO_EXPAND",
+									"RoleArn" : {"Fn::GetAtt" : [ "CloudFormationRole", "Arn"]},
+									"TemplatePath" : "MosaicAPIBundle::updated.template"
+								},
+                                "RunOrder" : 2
+							}
+						]
+					},
+					{
+						"Name" : "CloudMosaic-BlazerFrontend",
+                        "Actions" : [
+							{
+								"Name" : "Build-BlazerFrontend",
+								"ActionTypeId" : {
+									"Category" : "Build",
+                                    "Provider" : "CodeBuild",
+                                    "Owner" : "AWS",
+                                    "Version" : "1"
+								},
+                                "InputArtifacts" : [
+									{
+										"Name" : "TheSource"
+									}
+								],
+                                "OutputArtifacts" : [
+									{
+										"Name" : "CloudMosaicBlazerBundle"
+									}
+								],
+                                "Configuration" : {
+									"ProjectName" : { "Ref" : "MosaicBlazerFrontendBuild" }
+								},
+                                "RunOrder" : 1
+							},
+							{
+								"Name" : "Create-ECSService",
+								"ActionTypeId" : {
+									"Category" : "Deploy",
+                                    "Provider" : "CloudFormation",
+                                    "Owner" : "AWS",
+                                    "Version" : "1"
+								},
+                                "InputArtifacts" : [
+									{
+										"Name" : "TheSource"
+									}
+								],
+								"Configuration" : {
+									"ActionMode" : "CREATE_UPDATE",
+									"StackName"  : {"Fn::Join" : [ "", [{ "Ref" : "AWS::StackName" }, "-ECSBlazerService" ] ]},
+									"Capabilities" : "CAPABILITY_IAM,CAPABILITY_AUTO_EXPAND",
+									"RoleArn" : {"Fn::GetAtt" : [ "CloudFormationRole", "Arn"]},
+									"TemplatePath" : "TheSource::Application/Clients/CloudMosaic.BlazorFrontend/ECS-Service.template"
+								},
+                                "RunOrder" : 2
+							},
+							{
+								"Name" : "Deploy-BlazerFrontend",
+                                "ActionTypeId" : {
+									"Category" : "Deploy",
+                                    "Provider" : "ECS",
+                                    "Owner" : "AWS",
+                                    "Version" : "1"
+								},
+                                "InputArtifacts" : [
+									{
+										"Name" : "CloudMosaicBlazerBundle"
+									}
+								],
+                                "Configuration" : {
+									"ClusterName" : { "Ref" : "FrontendCluster" },
+									"ServiceName":  "Frontend",
+									"FileName":  "imagedefinitions.json"
+								},
+								"RunOrder" : 3
+							}
+						]
+					}
+                ]
+            }
+        }
+	},
+
+	"Outputs" : {
+	}
+}

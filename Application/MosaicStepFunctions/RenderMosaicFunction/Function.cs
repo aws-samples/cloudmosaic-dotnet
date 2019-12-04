@@ -32,6 +32,8 @@ namespace RenderMosaicFunction
 
         public async Task<State> FunctionHandler(State state, ILambdaContext context)
         {
+            var logger = new MosaicLogger(state, context);
+
             if (Directory.Exists(this.TileImageCacheDirectory))
             {
                 Directory.Delete(this.TileImageCacheDirectory, true);
@@ -39,26 +41,26 @@ namespace RenderMosaicFunction
 
             Directory.CreateDirectory(this.TileImageCacheDirectory);
 
-            context.Logger.LogLine("Loading mosaic layout info");
+            await logger.WriteMessageAsync("Loading mosaic layout info", MosaicLogger.Target.CloudWatchLogs);
             var mosaicLayoutInfo =
                 await MosaicLayoutInfoManager.Load(this.S3Client, state.Bucket, state.MosaicLayoutInfoKey);
 
             var width = mosaicLayoutInfo.ColorMap.GetLength(0) * state.TileSize;
             var height = mosaicLayoutInfo.ColorMap.GetLength(1) * state.TileSize;
 
-            context.Logger.LogLine($"Creating pixel data array {width}x{height}");
+            await logger.WriteMessageAsync($"Creating pixel data array {width}x{height}", MosaicLogger.Target.CloudWatchLogs);
             var pixalData = new Rgba32[width * height];
             for (int i = 0; i < pixalData.Length; i++)
                 pixalData[i] = Rgba32.Black;
 
-            context.Logger.LogLine($"Creating blank image");
+            await logger.WriteMessageAsync($"Creating blank image", MosaicLogger.Target.CloudWatchLogs);
             using (var rawImage = Image.LoadPixelData(pixalData, width, height))
             {
-                context.Logger.LogLine($"Created blank image");
+                await logger.WriteMessageAsync($"Created blank image", MosaicLogger.Target.CloudWatchLogs);
                 for (int x = 0; x < mosaicLayoutInfo.ColorMap.GetLength(0); x++)
                 {
                     int xoffset = x * state.TileSize;
-                    context.Logger.LogLine($"Processing row {x}");
+                    await logger.WriteMessageAsync($"Rendering row {x + 1} of {mosaicLayoutInfo.ColorMap.GetLength(0)}", MosaicLogger.Target.Client);
                     for (int y = 0; y < mosaicLayoutInfo.ColorMap.GetLength(1); y++)
                     {
                         int yoffset = y * state.TileSize;
@@ -86,8 +88,10 @@ namespace RenderMosaicFunction
 
                     var destinationKey =
                         S3KeyManager.DetermineS3Key(state.UserId, state.MosaicId, S3KeyManager.ImageType.FullMosaic);
-                    context.Logger.LogLine(
-                        $"Saving full mosaic to {destinationKey} with size {finalOutputStream.Length}");
+                    await logger.WriteMessageAsync("Saving rendered mosaic", MosaicLogger.Target.Client);
+                    await logger.WriteMessageAsync(
+                        $"Saving full mosaic to {destinationKey} with size {finalOutputStream.Length}", MosaicLogger.Target.CloudWatchLogs);
+
                     await this.S3Client.PutObjectAsync(new PutObjectRequest
                     {
                         BucketName = state.Bucket,
@@ -96,18 +100,34 @@ namespace RenderMosaicFunction
                     });
                 }
 
+
                 // Write web size mosaic to S3
-                await SaveResize(state, rawImage, Constants.IMAGE_WEB_WIDTH, Constants.IMAGE_WEB_HEIGHT,
+                var webDimension = DetermineResizeDimension(rawImage.Width, rawImage.Height, Constants.IMAGE_WEB_WIDTH, Constants.IMAGE_WEB_HEIGHT);
+                await logger.WriteMessageAsync($"Creating web page size version with dimensions width: {webDimension.width}, height: {webDimension.height}", MosaicLogger.Target.All);
+                await SaveResize(state, rawImage, webDimension.width, webDimension.height,
                     S3KeyManager.DetermineS3Key(state.UserId, state.MosaicId, S3KeyManager.ImageType.WebMosaic),
                     context);
 
                 // Write thumbnail mosaic to S3
-                await SaveResize(state, rawImage, Constants.IMAGE_THUMBNAIL_WIDTH, Constants.IMAGE_THUMBNAIL_HEIGHT,
+                var thumbnailDimension = DetermineResizeDimension(rawImage.Width, rawImage.Height, Constants.IMAGE_THUMBNAIL_WIDTH, Constants.IMAGE_THUMBNAIL_HEIGHT);
+                await logger.WriteMessageAsync($"Creating thumbnail version with dimensions width: {thumbnailDimension.width}, height: {thumbnailDimension.height}", MosaicLogger.Target.All);
+                await SaveResize(state, rawImage, thumbnailDimension.width, thumbnailDimension.height,
                     S3KeyManager.DetermineS3Key(state.UserId, state.MosaicId, S3KeyManager.ImageType.ThumbnailMosaic),
                     context);
 
+                state.Success = true;
                 return state;
             }
+        }
+
+        (int width, int height) DetermineResizeDimension(int actualWidth, int actualHeight, int maxWidth, int maxHeight)
+        {
+            if (actualHeight < actualWidth)
+            {
+                return (maxWidth, (int)((double)actualHeight * (double)maxWidth / (double)actualWidth));
+            }
+
+            return ((int)((double)actualWidth * (double)maxHeight / (double)actualHeight), maxHeight);
         }
 
         private async Task SaveResize(State state, Image<Rgba32> image, int width, int height, string key, ILambdaContext context)

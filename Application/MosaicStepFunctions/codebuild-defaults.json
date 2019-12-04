@@ -1,0 +1,6 @@
+{
+  "s3-prefix": "MosaicStepFunctions/",
+  "template": "serverless.template",
+  "framework": "netcoreapp2.1",
+  "template-substitutions": "$.Resources.StateMachine.Properties.DefinitionString.Fn::Sub=state-machine.json"
+}

@@ -1,0 +1,43 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Transform": "AWS::Serverless-2016-10-31",
+    "Description": "Creates a Lambda function to be invoked when images are uploaded to an S3 bucket, converting them into tile gallery items. The configuration of the event notification is done as part of the demo but could also be handled by editing the Events settings of the function in this template.",
+
+    "Parameters": {
+        "TableGallery": {
+            "Type": "AWS::SSM::Parameter::Value<String>",
+            "Default": "/CloudMosaic/AppOptions/TableGallery",
+            "Description" : "The name of the SSM parameter that stores the DynamoDB table for galleries."
+        }
+    },
+
+    "Resources": {
+
+
+        "GalleryItemStreamProcessorFunction": {
+            "Type": "AWS::Serverless::Function",
+            "Description": "Defines a serverless function for Lamba using the .NET Core runtime.",
+            "Properties": {
+                "Handler": "GalleryItemStreamProcessor::GalleryItemStreamProcessor.Function::FunctionHandler",
+                "Runtime": "dotnetcore2.1",
+                "CodeUri": "",
+                "Description": "Default function",
+                "MemorySize": 256,
+                "Timeout": 30,
+                "Role": null,
+                "Policies": [
+                    "AWSLambdaFullAccess"
+                ],
+                "Tracing": "Active",
+                "Environment": {
+                    "Variables": {
+                        "TABLE_GALLERY": {
+                            "Ref": "TableGallery"
+                        }
+                    }
+                },                
+                "Events": {}
+            }
+        }
+    }
+}

@@ -1,0 +1,75 @@
+﻿@page "/feed"
+@using System.Collections.Generic;
+@using System.Threading;
+@using CloudMosaic.BlazorFrontend.Models;
+@using CloudMosaic.API.Client;
+
+
+@inject IModalService Modal
+@inject IServiceClientFactory ServiceClientFactory
+@inject ICommunicationClientFactory CommunicationClientFactory
+@inject NavigationManager NavigationManager
+
+<AuthorizeView Roles="Admin">
+    <Authorized>
+<h2>Feed</h2>
+
+@foreach (var mosaic in this.UserMosaics.OrderByDescending(x => x.CreateDate))
+{
+    <div class="row" style="margin:30px">        
+        <a href="@mosaic.MosaicFullUrl" target="_blank"><img src="@mosaic.MosaicWebPageSizeUrl" /></a>
+    </div>
+}
+
+@if (!this.Loaded)
+{
+    <p>
+        <div class="d-flex align-items-center">
+            <strong>Loading mosaics...</strong>
+            <div class="spinner-border ml-auto" role="status" aria-hidden="true"></div>
+        </div>
+    </p>
+}
+
+    </Authorized>
+    <NotAuthorized>
+        <h1>Authorization Fail!</h1>
+        <p>Managing tile galleries is currently restricted to admin only.</p>
+    </NotAuthorized>
+</AuthorizeView>
+
+
+@code {
+
+    bool Loaded { get; set; }
+
+    System.Collections.ObjectModel.ObservableCollection<MosaicWrapper> UserMosaics = new System.Collections.ObjectModel.ObservableCollection<MosaicWrapper>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await ReloadMosaics();
+    }
+
+    async Task ReloadMosaics()
+    {
+        try
+        {
+            var mosaicClient = await ServiceClientFactory.CreateMosaicClient();
+
+            var mosaics = await mosaicClient.GetAllMosaicAsync();
+            UserMosaics.Clear();
+            foreach(var mosaic in mosaics)
+            {
+                UserMosaics.Add(new MosaicWrapper(mosaic));
+            }
+
+            this.Loaded = true;
+            this.StateHasChanged();
+        }
+        catch (NoIdTokenException)
+        {
+            NavigationManager.NavigateTo("Identity/Account/Login", true);
+        }
+    }
+
+}

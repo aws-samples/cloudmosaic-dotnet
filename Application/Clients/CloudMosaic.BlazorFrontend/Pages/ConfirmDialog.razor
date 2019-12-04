@@ -1,0 +1,39 @@
+﻿@inject IModalService ModalService
+    
+<div class="simple-form">
+
+    <p>@ConfirmMessage</p>
+
+    <button @onclick="YesClick" class="btn btn-primary">Yes</button>
+    <button @onclick="NoClick" class="btn btn-secondary">No</button>
+
+</div>
+
+@code {
+
+    public const string RETURN_DATA_PARAMETER = "ReturnData";
+    public const string CONFIRM_MESSAGE_PARAMETER = "ConfirmMessage";
+
+    [CascadingParameter] ModalParameters Parameters { get; set; }
+
+    public string ConfirmMessage { get; set; }
+
+    protected override Task OnInitializedAsync()
+    {
+        ConfirmMessage = Parameters.Get<string>(CONFIRM_MESSAGE_PARAMETER);
+        return Task.CompletedTask;
+    }
+
+    void YesClick()
+    {
+        var returnData = Parameters.Get<string>(RETURN_DATA_PARAMETER);
+
+        ModalService.Close(ModalResult.Ok(returnData));
+    }
+
+
+    void NoClick()
+    {
+        ModalService.Close(ModalResult.Cancel());
+    }
+}

@@ -11,4 +11,3 @@ The 2019 version has the following changes over the version in the master branch
 * Use API Gateway's WebSocket support to connect backend components to the frontend allowing backend systems to easily communicate their status to the user in real time.
 
 
-More content will be added to this readme to explain the code in this repository.

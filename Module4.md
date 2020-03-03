@@ -38,10 +38,11 @@ To use layers you first create a manifest file of the dependencies to be include
     > Note: you can view help for the command by running `dotnet lambda publish-layer help`
 
     ```bash
-    dotnet lambda publish-layer --layer-type runtime-package-store --layer-name mosaiclayer --package-manifest ./MosaicLayers.xml
+    dotnet lambda publish-layer --layer-type runtime-package-store --layer-name mosaiclayer --package-manifest ./MosaicLayers.xml --region YOUR-REGION-HERE
     ```
 
-    > Note 1: the command will prompt you to supply the name of an Amazon S3 bucket to which it will upload the layer bundle. The bucket must exist in the same region as the deployed Lambda functions and layer.\
+    > Note 1: the command will prompt you to supply the name of an Amazon S3 bucket to which it will upload the layer bundle. The bucket must exist in the same region as the deployed Lambda functions and layer, specified using the --region option in the command. For region, use the region code for example --region us-west-2\
+    \
     > Note 2: the command example above assumes you used the name *default* for the credential profile you created in module 1. If you used a different name, add the *--profile **profilename*** option, for example *--profile myworkshopprofile*.
 
 1. When the publish command completes it will output the ARN of the new layer. For example:
@@ -52,7 +53,7 @@ To use layers you first create a manifest file of the dependencies to be include
 
     Copy the ARN to the clipboard ready for the next step.
 
-1. Open the *serverless.template* file in Visual Studio and expand the definition of the first Lambda function. You can use the support for editing json-format CloudFormation templates provided by the toolkit to add a *Layers* element (enter a new line, then press Ctrl+Space to see valid child elements), or add by hand. Add the *Layers* element after the *Code* element. The *Layers* entry has an array of strings as children. Each child is the ARN of the layer to be referenced by the function when it executes. After editing, the function should look similar to this:
+1. Open the *serverless.template* file under *MosaicStepFunctions* in Visual Studio and expand the definition of the first Lambda function. You can use the support for editing json-format CloudFormation templates provided by the toolkit to add a *Layers* element (enter a new line, then press Ctrl+Space to see valid child elements), or add by hand. Add the *Layers* element after the *Code* element. The *Layers* entry has an array of strings as children. Each child is the ARN of the layer to be referenced by the function when it executes. After editing, the function should look similar to this:
 
     ```json
     "Code" : {
@@ -76,10 +77,10 @@ To deploy the step functions (with or without layer support):
 1. Run the command
 
     ```bash
-    dotnet lambda deploy-serverless
+    dotnet lambda deploy-serverless --region YOUR-REGION-HERE
     ````
 
-    > Note: the command example above assumes you used the name *default* for the credential profile you created in module 1. If you used a different name, add the *--profile profilename* option, for example *--profile myworkshopprofile*.
+    > Note: the command example above assumes you used the name *default* for the credential profile you created in module 1. If you used a different name, add the *--profile profilename* option, for example *--profile myworkshopprofile*. For the --region option, specify the region code (for example --region us-west-2)
 
 1. Provide the name of a bucket (must be in the same region as the deployment target) to which the bundle holding our built and packaged Lambda functions will be uploaded.
 
@@ -93,7 +94,9 @@ To deploy the step functions (with or without layer support):
     * Select *Step Functions* from the results.
 1. Click the name of the state machine you just deployed (the name will be in the ARN shown by the cli tool output in the previous section).
 1. Click **Start execution**
-1. Delete the sample json input and paste in the json snippet below, edited to suit:
+1. Delete the sample json input and paste in the json snippet below, edited to suit. You need to edit the *UserId*, *MosaicId*, *GalleryId*, *Bucket*, and *SourceKey* elements at a minimum. For *GalleryId*, use the id of the test gallery you created in module 3 when testing the batch job.
+
+    > Note: The table names shown below assume you used the suggested name of *CloudMosaic* for the application resources stack you deployed in module 2. If you changed the name, make sure to also edit these two values to match your actual table names.
 
     ```json
     {
@@ -113,7 +116,7 @@ To deploy the step functions (with or without layer support):
     1. Edit **Bucket** to be the bucket name you uploaded the image to
     1. Edit **SourceKey** to match the key of the file you uploaded to the bucket
 
-    ![Start exectution](media/4-ExecStepFunctionWorkflow.png)
+    ![Start execution](media/4-ExecStepFunctionWorkflow.png)
 
 1. Click **Start execution**
 

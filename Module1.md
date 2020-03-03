@@ -1,10 +1,14 @@
 # Module 1: Setup the AWS tools and user credentials
 
-The steps in this module will walk you through setting up the [AWS Toolkit for Visual Studio](https://aws.amazon.com/visualstudio/) (Windows only) and the AWS extensions for working with [AWS Lambda](https://aws.amazon.com/lambda/) and [Amazon Elastic Container Service](https://aws.amazon.com/ecs/) with the dotnet CLI (on Windows, macOS, and Linux). Finally you will create an [Identity and Access Management (IAM)](https://aws.amazon.com/iam/) user in your account with programmatic credentials, and configure a local credential profile containing the AWS access and secret keys generated for the user that will then be used by the AWS tools.
+The steps in this module will walk you through setting up the [AWS Toolkit for Visual Studio](https://aws.amazon.com/visualstudio/) (Windows only) and the AWS extensions for working with [AWS Lambda](https://aws.amazon.com/lambda/) and [Amazon Elastic Container Service](https://aws.amazon.com/ecs/) with the dotnet CLI (on Windows, macOS, and Linux).
 
-> ***Note: You may skip this module and proceed directly to module 2 if you already have the tools installed and have a credential profile for an IAM user (with at least AWS Power User permissions) on your machine, .***
+With the AWS tools installed, next you will create an [Identity and Access Management (IAM)](https://aws.amazon.com/iam/) user in your account. The user you create will have *Administrator* privileges for the purpose of this workshop.
 
-## Step 1: **(Visual Studio on Windows users only)** Install the AWS Toolkit for Visual Studio
+Finally you will use those programmatic credentials generated for the user to configure a local *credential profile*. The credential profile will then be used by the AWS tools when you work with AWS services later in this guide.
+
+> ***Note: If you already have the AWS tools installed and configured with a credential profile, you may skip this module and proceed directly to [module 2](Module2.md).***
+
+## Step 1: ***(for Visual Studio on Windows users only)*** Install the AWS Toolkit for Visual Studio
 
 In this step you will install the AWS Toolkit for Visual Studio on Windows. If you are using macOS or Linux, or are on Windows and do not wish to use Visual Studio, you can skip this step.
 
@@ -18,7 +22,7 @@ In this step you will install the AWS Toolkit for Visual Studio on Windows. If y
 
 The AWS Toolkit for Visual Studio is now installed and will be available for use when Visual Studio is next started.
 
-## Step 2: Install command line tools
+## Step 2: ***(For all platforms)*** Install command line tools
 
 In this step you will install the [AWS extensions for the dotnet CLI](https://github.com/aws/aws-extensions-for-dotnet-cli) to support working with AWS Lambda and Amazon Elastic Container Service from the command line. This step is relevant for all users regardless of operating system platform.
 
@@ -35,13 +39,13 @@ In this step you will install the [AWS extensions for the dotnet CLI](https://gi
     dotnet tool install -g Amazon.ECS.Tools
     ```
 
-You have now completed tool setup and can move onto the next step to configure a credential profile to use with the tools (both command line and Visual Studio).
+You have now completed tool setup and can move onto the next step to configure a credential profile to use with the tools (both command line on Windows, macOS and Linux, and and Visual Studio on Windows).
 
 ## Step 3: Create an IAM user with programmatic credentials and console sign-in
 
-AWS strongly recommends creating an Identity and Access Management (IAM) user for use with the AWS development tools and to *not* use your root account credentials. Follow the steps below to provision a new user, and generate programmatic credentials (access and secret key) and console login link with password, for use with the tools.
+AWS strongly recommends as a best practice that you create an Identity and Access Management (IAM) user for use with the AWS development tools and to *not* use your root account credentials. Follow the steps below to provision a new user, and generate programmatic credentials (access and secret keys), and console login link with password, for use with the tools.
 
-1. Log into the AWS Management Console.
+1. Log into the [AWS Management Console](https://console.aws.amazon.com/).
 1. At the Console Home page, enter the text *IAM* in the **Find Services** field.
 1. Click the resulting selection to jump to the IAM console home.
 1. Select **Users** in the left-hand panel.
@@ -68,9 +72,11 @@ You have now created a new user in your account for use with the tools and can p
 
 ## Step 4: Create a credential profile for the user
 
-With the AWS tools installed and a new user created in your account with programmatic credentials this step walks you through how to setup a credential profile representing the user that can be used by the tools. How you do this depends upon your chosen tool so instructions for Visual Studio and the command line are provided below.
+With the AWS tools installed and a new user created in your account with programmatic credentials this step walks you through how to setup a credential profile representing the user that can be used by the tools.
 
-### Setting up a credential profile in Visual Studio
+> Note: You only need to follow **one** set of option instruction from those below to create a credential profile. Choose the most suitable instructions below that fit the tools you have installed.
+
+### ***(Option 1)*** Using Visual Studio to set up a credential profile
 
 1. Start Visual Studio. If this is the first time launching Visual Studio after installing the AWS toolkit and no other credential profiles exist on your system it will display the *AWS Getting Started* view inviting you to add credentials.
 
@@ -92,9 +98,9 @@ With the AWS tools installed and a new user created in your account with program
 1. You may leave the **Account Number** blank if you wish. For all standard public AWS accounts leave the **Account Type** field at *Standard AWS Account*. If you are using an AWS GovCloud account, or are in the AWS China region, select the correct account type in the field.
 1. Click *Save and close* button (*OK* in the *New Account Profile* window) to close the view. Your new credential profile will be preselected in the *AWS Explorer* window ready for use.
 
-***You have now completed this module and can move onto module 2.***
+***You have now completed this module and can move onto [module 2](Module2.md).***
 
-### Setting up a credential profile using a text editor
+### ***(Option 2)*** Using a text editor to set up a credential profile
 
 Follow these steps to create a credential profile using a text editor of your choice.
 
@@ -113,13 +119,9 @@ Follow these steps to create a credential profile using a text editor of your ch
 
 1. Save the file and exit the text editor.
 
-***You have now completed this module and can move onto module 2.***
+***You have now completed this module and can move onto [module 2](Module2.md).***
 
-### Setting up a credential profile at the command line
-
-If you have either the [AWS Tools for PowerShell](https://aws.amazon.com/powershell/) or the [AWS CLI](https://aws.amazon.com/cli/) installed you can follow these steps to set up your credential profile.
-
-#### Using the AWS Tools for PowerShell
+### ***(Option 3)*** Using the AWS Tools for PowerShell to set up a credential profile
 
 1. Open a PowerShell command prompt.
 1. If you have the [AWSPowerShell](https://www.powershellgallery.com/packages/AWSPowerShell/) or [AWSPowerShell.NetCore](https://www.powershellgallery.com/packages/AWSPowerShell.NetCore/) modules installed, first import the relevant module with the command
@@ -134,7 +136,7 @@ If you have either the [AWS Tools for PowerShell](https://aws.amazon.com/powersh
     PS C:\> Import-Module AWSPowerShell.NetCore
     ```
 
-    > Note: if you are using the [new preview of the tools](https://aws.amazon.com/blogs/aws/preview-release-of-the-new-aws-tools-for-powershell/), you do not need to import a module first.
+    > Note: if you are using [version 4](https://aws.amazon.com/blogs/developer/aws-tools-for-powershell-is-now-generally-available-with-version-4-0/) of the tools, you do not need to import a module first.
 
 1. Open the csv file in a text editor.
 1. Run the following command, substituting the access and secret access key values from the csv file:
@@ -147,7 +149,9 @@ If you have either the [AWS Tools for PowerShell](https://aws.amazon.com/powersh
 
     > Note: on Windows the command shown above will write the credential profile to the encrypted credential store held in %USERPROFILE%\\AppData\\Local\\AWSToolkit\\RegisteredAccounts.json. To have the profile written to the plain text shared credentials file in %USERPROFILE%\\.aws\\credentials, add the -ProfileLocation parameter with the location of the shared credentials file.
 
-#### Using the AWS CLI
+***You have now completed this module and can move onto [module 2](Module2.md).***
+
+### ***(Option 4)*** Using the AWS CLI to set up a credential profile
 
 1. Open a command shell and run the command
 

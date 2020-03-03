@@ -1,6 +1,6 @@
 # .NET on AWS: Building End-to-End Serverless .NET Applications
 
-This guide presents the CloudMosaic serverless demo application first shown in the AWS re:Invent 2018 session [Developing with .NET Core on AWS: What's New](https://www.youtube.com/watch?v=FteCJQcTDc4) and subsequently at various AWS Summits and events. The guide acts as a workshop with the modules and steps to follow to deploy the application in your own account.
+This guide presents the CloudMosaic serverless demo application first shown in the AWS re:Invent 2018 session [Developing with .NET Core on AWS: What's New](https://www.youtube.com/watch?v=FteCJQcTDc4). The guide acts as a workshop with the modules and steps to follow to deploy the application in your own account.
 
 > Note: the CI/CD content from the original re:Invent session is not currently discussed in this sample but the necessary AWS CodeBuild files have been retained alongside the code assets for reference.
 
@@ -10,7 +10,7 @@ CloudMosaic is an application that enables registered and signed-in users to cre
 
 The sample illustrates modern, serverless, .NET Core applications on [AWS](https://aws.amazon.com/). It uses the [AWS SDK for .NET](https://docs.aws.amazon.com/sdk-for-net/) to work with AWS services from within application code, as well as [tools from AWS](https://aws.amazon.com/developer/language/net/tools/) to integrate with Visual Studio (on Windows) and the dotnet CLI (on Windows, macOS, and Linux) to make working with serverless application development on AWS easy and convenient.
 
-Following the instructions in this sample you will gain experience in deploying to and using the following AWS services, using the tools you are already familiar with, namely Visual Studio and AWS extensions for the dotnet CLI:
+Following the instructions in this sample you will gain experience in deploying to and using the following AWS services, with the tools you are already familiar with - namely Visual Studio and AWS extensions for the dotnet CLI:
 
 * [Amazon Cognito](https://aws.amazon.com/cognito/)
 * [Amazon DynamoDB](https://aws.amazon.com/dynamodb/)
@@ -28,15 +28,19 @@ The overall architecture of the application is shown below. Individual modules w
 
 ## Prerequisite installations
 
-To perform the steps in this guide on Windows, macOS or Linux we recommend you install the following software before starting:
+To perform the steps in this workshop on Windows, macOS, or Linux you will first need to install some tools. Follow the instructions below for your chosen environment, and then proceed to configure those tools with an *AWS credential profile*], using [module 1](Module1.md), enabling you to work with AWS services using the tools.
 
 ### Windows Users
 
-* [Visual Studio 2019](https://visualstudio.microsoft.com/) (the free community edition of Visual Studio is sufficient).
+If you are using Windows as your platform of choice, we recommend you install the following toolchain to make the most of this workshop.
+
+* [Visual Studio 2019](https://visualstudio.microsoft.com/) (the free community edition of Visual Studio is sufficient). You can also use Visual Studio 2017 if you wish.
     > Note 1: The IDE must be installed with the .NET Core, ASP.NET Core and F# workloads.\
     > Note 2: If you are using Windows but do not want to use Visual Studio, you can install the .NET Core SDK (AWS Lambda supports .NET Core 2.1) and use the AWS extensions for the dotnet CLI  (see below).
+* [.NET Core SDK version 2.1](https://dotnet.microsoft.com/download)
+  > Note: AWS Lambda supports .NET Core 2.1, so be sure to install the correct SDK version
 * [AWS extensions for the dotnet CLI](https://github.com/aws/aws-extensions-for-dotnet-cli):
-  * To install the tools needed for this guide run the commands
+  * To install the tools needed for this guide, run the following commands from a command shell
 
     ```powershell
     dotnet tool install -g Amazon.Lambda.Tools
@@ -50,10 +54,10 @@ To perform the steps in this guide on Windows, macOS or Linux we recommend you i
 
 ### macOS or Linux Users
 
-* [.NET Core SDK](https://dotnet.microsoft.com/download)
-  > Note: AWS Lambda supports .NET Core 2.1
+* [.NET Core SDK version 2.1](https://dotnet.microsoft.com/download)
+  > Note: AWS Lambda supports .NET Core 2.1, so be sure to install the correct SDK version
 * [AWS extensions for the dotnet CLI](https://github.com/aws/aws-extensions-for-dotnet-cli):
-  * To install the tools needed for this guide run the commands
+  * To install the tools needed for this guide run the commands from a command shell
 
     ```bash
     dotnet tool install -g Amazon.Lambda.Tools

@@ -12,20 +12,20 @@ The architecture for the web front-end can be seen below.
 
 ![Web front-end architecture](media/5-Architecture.png)
 
-The project for the web front-end can be found in the *UI* solution folder.
+The project for the web front-end can be found in the *UI* solution folder. You can deploy the project using either a wizard in Visual Studio, or from the dotnet CLI.
 
-## Deploy the web front-end project using Visual Studio
+## (Option 1) Deploy the web front-end project using Visual Studio
 
 1. Right-click on the project and select *Publish container to AWS*.
 1. On the starting page of the wizard ensure the credential profile and region selections are correct and match what has been used to deploy the other subsystems above.
-1. For *Docker Repository* select the repository created via the CloudFormation template in the pre-requisites section (name pattern *cloud-front-RANDOM*)
+1. For *Docker Repository* select the repository created via the application resources template deployed to CloudFormation in module 2. The repository will have a name that follows the pattern *cloud-front-RANDOM*.
     1. For Tag enter **latest** (or leave blank)
     1. For *Deployment Target*, **Service on an ECS Cluster** should be selected.
   ![Publish wizard 1](media/5-PublishWizard1.png)
 1. Click **Next**.
 1. On the *Launch Configuration* page:
-    1. Open **VPC Subnets** and select at least 2 subnets from the VPC created for you by the CloudFormation template you deployed in module 2. If the wizard has selected any subnets from your default VPC, uncheck them.
-    1. Open **Security Groups** and select the security group for the web front end (also created by the template in module 2). It will have a name similar to *CloudMosaic-ECSSecurityGroup-RANDOM*.
+    1. Open **VPC Subnets** and select at least 2 subnets from the VPC created for you by the application resources template deployed in module 2. If the wizard has selected any subnets from your default VPC, uncheck them.
+    1. Open **Security Groups** and select the security group for the web front end (also created by the template deployed in module 2). It will have a name following the pattern *CloudMosaic-ECSSecurityGroup-RANDOM*.
 1. Leave the other settings at their default values.
   ![Publish wizard 2](media/5-PublishWizard2.png)
 1. Click **Next**.
@@ -33,17 +33,16 @@ The project for the web front-end can be found in the *UI* solution folder.
   ![Publish wizard 3](media/5-PublishWizard3.png)
 1. On *Application Load Balancer Configuration*:
     1. Check **Configure Application Load Balancer**.
-    1. For *Load Balancer* select the one created by the pre-requisites stack (name pattern *Cloud-LoadB-RANDOM*).
+    1. For *Load Balancer* select the one created by the application resources stack deployed in module 2. It will have a name following the pattern *Cloud-LoadB-RANDOM*.
     1. For *Listener Port* select **80 (HTTP)**.
-    1. For *Target Group* select the one created by the pre-requisites stack (name pattern *Cloud-Defau-RANDOM*).
+    1. For *Target Group* select the one created by the application resources stack deployed in module 2. It will have a name following the pattern *Cloud-Defau-RANDOM*.
   ![Publish wizard 4](media/5-PublishWizard4.png)
 1. Click **Next**.
 1. On *Task Definition*:
     1. For *Task Definition* select *Create new* and accept the default name, **CloudMosaicFrontend**.
     1. *Container* should be set to **CloudMosaicFrontend**.
-    1. *Task Role* should be set to **Existing role: CloudMosaic-FrontendTaskRole-*RANDOM***.
-    1. *Task Execution Role* should be set to **CloudMosaic-FrontendExecutionRole-*RANDOM***.
-        > Note: both of these roles were created as part of the CloudFormation stack you deployed in module 2.
+    1. *Task Role* should be set to **Existing role: CloudMosaic-FrontendTaskRole-*RANDOM***. This role was created by the application resources stack deployed in module 2.
+    1. *Task Execution Role* should be set to **CloudMosaic-FrontendExecutionRole-*RANDOM***. This role was created by the application resources stack deployed in module 2.
   ![Publish wizard 5](media/5-PublishWizard5.png)
 1. Click **Publish**.
 
@@ -51,9 +50,9 @@ After the wizard completes the toolkit will open a view onto the cluster. Click 
 
   ![Application url](media/5-VSServicesView.png)
 
-## Deploying the web front-end project using the dotnet CLI
+## (Option 2) Deploying the web front-end project using the dotnet CLI
 
-The global Amazon.ECS.Tools package was installed in module 3 and we will re-use it's commands here to publish our web application to AWS Fargate.
+The global Amazon.ECS.Tools package was installed in module 3 and we will re-use its commands here to publish our web application to AWS Fargate.
 
 1. Open a command shell and cd to the *./Application/UI/CloudMosaic.FrontEnd* folder.
 1. Edit the *aws-ecs-tools-defaults.json* file to set the resources to be referenced during deployment. These resources were created by the CloudFormation stack you deployed to in module 2. In the example below you need to replace the values for the following keys:
@@ -105,11 +104,11 @@ The global Amazon.ECS.Tools package was installed in module 3 and we will re-use
     dotnet ecs deploy-service
     ```
 
-1. When the command completes, in the AWS Management Console navigate to the EC2 homepage.
+1. When the command completes, from the [AWS Management Console](https://console.aws.amazon.com/) home page navigate to the EC2 dashboard.
     * Select *Services* and enter the text **EC2** into the search field.
     * Select *EC2* from the results.
 1. Under *Load Balancing* in the left-hand navigation pane select **Load Balancers**.
-1. Select the load balancer for the application (it will have a name with pattern *Cloud-LoadB-RANDOM*).
+1. Select the load balancer for the application. This was created by the application resources template deployed in module 2 and will have a name following the pattern *Cloud-LoadB-RANDOM*.
 1. In the *Basic Configuration* data for the selected load balancer, copy the DNS name. This is the URL to the deployed application.
 
     ![ALB DNS](media/5-ALB_DNS.png)

@@ -38,7 +38,7 @@ To use layers you first create a manifest file of the dependencies to be include
     > Note: you can view help for the command by running `dotnet lambda publish-layer help`
 
     ```bash
-    dotnet lambda publish-layer --layer-type runtime-package-store --layer-name mosaiclayer --package-manifest ./MosaicLayers.xml --region YOUR-REGION-HERE
+    dotnet lambda publish-layer --layer-type runtime-package-store --layer-name mosaiclayer --package-manifest ./MosaicLayer.xml --region YOUR-REGION-HERE
     ```
 
     > Note 1: the command will prompt you to supply the name of an Amazon S3 bucket to which it will upload the layer bundle. The bucket must exist in the same region as the deployed Lambda functions and layer, specified using the --region option in the command. For region, use the region code for example --region us-west-2\

@@ -22,7 +22,7 @@
     <PackageReference Include="AWSSDK.StepFunctions" Version="3.3.100" />
     <PackageReference Include="AWSSDK.S3" Version="3.3.100" />
     
-    <PackageReference Include="Microsoft.AspNetCore.App" Version="2.1.4" />
+    <PackageReference Include="Microsoft.AspNetCore.App" Version="2.1.15" />
     <PackageReference Include="Microsoft.AspNetCore.Razor.Design" Version="2.1.2" PrivateAssets="All" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.0.1916590" />
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="2.1.1" />

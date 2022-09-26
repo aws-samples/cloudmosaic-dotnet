@@ -74,7 +74,8 @@ let LoadGalleryItems (tableName: string) (galleryId: string) (_: ILambdaContext)
     }
 
     do! executeQuery()
-    return tileInfos
+    return if tileInfos.Count > 0 then tileInfos
+        else failwith (sprintf "GalleryItems is empty for the given Gallery: %s" galleryId)
 }
 
 

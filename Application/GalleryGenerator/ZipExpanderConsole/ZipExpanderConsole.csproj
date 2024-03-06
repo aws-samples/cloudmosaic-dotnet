@@ -10,7 +10,7 @@
     <PackageReference Include="AWSSDK.S3" Version="3.3.100" />
     <PackageReference Include="AWSSDK.DynamoDBv2" Version="3.3.100" />
     <PackageReference Include="AWSSDK.Rekognition" Version="3.3.100" />
-    <PackageReference Include="SixLabors.ImageSharp" Version="1.0.0-beta0005" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="2.1.7" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
   </ItemGroup>
 
